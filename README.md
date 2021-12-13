@@ -5,7 +5,8 @@ Discord Bot
  - Text-To-Speech
  - Custom UI
 
- - Voice Control
+
+ - Voice Control:
     - Play Music
     - Search Wikipedia
     - Move Users to Specified Voice Channels
