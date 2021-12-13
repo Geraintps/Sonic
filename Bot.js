@@ -21,6 +21,8 @@ const client = new Client({
         Intents.FLAGS.GUILDS,
         Intents.FLAGS.GUILD_VOICE_STATES,
         Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_PRESENCES,
+        Intents.FLAGS.GUILD_MEMBERS
     ],
 });
 
@@ -171,7 +173,11 @@ let server_queue;
 let globalInteraction;
 let btnComponent;
 let btnContent;
-
+let isPlaying = false;
+let currentSong;
+let subscription;
+let currentGuild;
+let currentDuration;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -200,8 +206,6 @@ function storeId() {
     });
 }
 async function checkMsg(msg, isVoiceMsg) {
-    
-    
     switch (msgStatus) {
         case "booting":
             btnContent = joinContent
@@ -217,83 +221,93 @@ async function checkMsg(msg, isVoiceMsg) {
             break;
     }
     try{
-        if(msg.author != mainMsg.author && !isVoiceMsg) {
-            await msg.delete();
+        if (msg) {
+            if( !isVoiceMsg && msg.author != client.user ) {
+                await msg.delete();
+            } else {
+                await mainMsg.delete();
+                mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+            }
+        } else {
+            await mainMsg.delete();
+            mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
         }
-        await mainMsg.delete();
-        mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
-    } catch {console.log(`ERROR: msgStatus is invalid (${msgStatus} : (${msg}) : (${mainMsg.author})))`);}
-    
+        // await mainMsg.delete();
+        // mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+    } catch (e) {
+        (console.error || console.log).call(console, e.stack || e);
+        //console.log(`ERROR: msgStatus is invalid (${msgStatus} : (${msg}) : (${mainMsg.author})))`);
+    }
     storeId();
 }
 
 client.on("messageCreate", async (msg) => {
-    
     try{
+        currentGuild = msg.guild;
+        setTimeout(() => { initialCheckMsg(msg) }, 500);
         if (talkedRecently.has(msg.author.id)) {
-            console.log("5 second timeout" + msg.author);
+            console.log("5 second timeout : " + msg.author);
         } else {
-        
+            const voice_Channel = msg.member ?.voice.channel;
+            textChannel = msg.channel;
+            if (voice_Channel && msg.content == ";join") {
+                try{
+                    var voiceChannel = msg.member.voice.channelId;
+                    if(!voiceConnection || voiceConnection?.status===VoiceConnectionStatus.Disconnected){
+                        voiceConnection = joinVoiceChannel({
+                            channelId: voiceChannel,
+                            guildId: msg.guildId,
+                            adapterCreator: msg.guild.voiceAdapterCreator,
+                            selfDeaf: false
+                        });
+                        voiceConnection=await entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000);
+                        const resource = createAudioResource('music/sonic_ring_sound.mp3', {
+                             inputType: StreamType.Arbitrary,
+                             volume: 2
+                        });
+                        player.play(resource);
+                        player.on(AudioPlayerStatus.Playing, () => {
+                                // Do whatever you need to do when playing
+                        });
+                        voiceConnection.subscribe(player);
+                    }
+                } catch {return console.log("Error joining voice channel");}
+            } else if (msg.content.includes(";youtube")) {
+                togetherStart(msg);
+            } else if (msg.content.includes(";poker")) {
+                togetherStart(msg);
+            } else if (msg.content.includes(";chess")) {
+                togetherStart(msg);
+            } else if (msg.content.includes(";doodlecrew")) {
+                    togetherStart(msg);
+            } else if (msg.content.includes(";awkword")) {
+                togetherStart(msg);
+            } else if (msg.content.includes(";wordsnack")) {
+                togetherStart(msg);
+            } else if (msg.content.includes(";play")) {
+                let args = msg.content.replace(/;play /g,'');
+                playCommand(args, msg);
+            } else if (msg.content.includes(";skip")) {  
+                //let args = msg.content.replace(/;play /g,'');
+                skipCommand("", msg);
+            } else if (msg.content.includes("Sonic tell me about lemons")) {
+                await pauseCommand();
+                let theMsg = await wikipedia(msg);
+                await tts(theMsg, msg);
+            }
             // the user can type the command ... your command code goes here :)
-        
-            // Adds the user to the set so that they can't talk for a minute
+                    // Adds the user to the set so that they can't talk for a minute
+            if (msg.author.id == client.user.id) {
+                return;
+            } else {
             talkedRecently.add(msg.author.id);
             setTimeout(() => {
                 // Removes the user from the set after a minute
                 talkedRecently.delete(msg.author.id);
             }, 5000);
-        }
-    } catch {console.log("ERROR: Talked recently");}
-    
-    setTimeout(() => { initialCheckMsg(msg) }, 500);
-
-    const voice_Channel = msg.member ?.voice.channel;
-    textChannel = msg.channel;
-    if (voice_Channel && msg.content == ";join") {
-        try{
-            var voiceChannel = msg.member.voice.channelId;
-            if(!voiceConnection || voiceConnection?.status===VoiceConnectionStatus.Disconnected){
-                voiceConnection = joinVoiceChannel({
-                    channelId: voiceChannel,
-                    guildId: msg.guildId,
-                    adapterCreator: msg.guild.voiceAdapterCreator,
-                    selfDeaf: false
-                });
-                voiceConnection=await entersState(voiceConnection, VoiceConnectionStatus.Connecting, 5_000);
-                const resource = createAudioResource('music/sonic_ring_sound.mp3', {
-                        inputType: StreamType.Arbitrary,
-                        volume: 2
-                    });
-                player.play(resource);
-                player.on(AudioPlayerStatus.Playing, () => {
-                        // Do whatever you need to do when playing
-                });
-                voiceConnection.subscribe(player);
+                }
             }
-        } catch {return console.log("Error joining voice channel");}
-    } else if (msg.content.includes(";youtube")) {
-        togetherStart(msg);
-    } else if (msg.content.includes(";poker")) {
-        togetherStart(msg);
-    } else if (msg.content.includes(";chess")) {
-        togetherStart(msg);
-    } else if (msg.content.includes(";doodlecrew")) {
-            togetherStart(msg);
-    } else if (msg.content.includes(";awkword")) {
-        togetherStart(msg);
-    } else if (msg.content.includes(";wordsnack")) {
-        togetherStart(msg);
-    } else if (msg.content.includes(";play")) {
-        let args = msg.content.replace(/;play /g,'');
-        playCommand(args, msg);
-    } else if (msg.content.includes(";skip")) {  
-        //let args = msg.content.replace(/;play /g,'');
-        skipCommand("", msg);
-    } else if (msg.content.includes("Sonic tell me about lemons")) {
-        await pauseCommand();
-        let theMsg = await wikipedia(msg);
-        await tts(theMsg);
-    }
+    } catch {console.log("ERROR: Talked recently");}
 });
 
 function togetherStart(message) {
@@ -439,6 +453,7 @@ client.on("speech", (msg) => {
     if (!msg.content) {
         return;
     } else {
+        currentGuild = msg.guild;
         console.log(msg.content);
         if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
             if (msg.content.includes("play")) {
@@ -453,9 +468,6 @@ client.on("speech", (msg) => {
             } else if (msg.content.includes("resume")) {
                 let args = msg.content.replace(/Sonic play/g,'');
                 resumeCommand(args, msg);
-            } else if (msg.content.includes("leave") || msg.content.includes("leaf") || msg.content.includes("sonically")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                leaveCommand(args, msg);
             } else if (msg.content.includes("skip") || msg.content.includes("skit")) {
                 let args = msg.content.replace(/Sonic play/g,'');
                 skipCommand(args, msg);
@@ -468,18 +480,18 @@ client.on("speech", (msg) => {
             } else if (msg.content.includes("fact")) {
                 var randomItem = randomFacts[Math.floor(Math.random() * randomFacts.length)];
                 textChannel.send(`‎\n${wApo} 𝙁𝙖𝙘𝙩: ${randomItem} ${wApo}`)
-                tts(randomItem);
+                tts(randomItem, msg);
             } else if (msg.content.includes("help")) {
                 textChannel.send("**Welcome to Voided.exe**\nWhat would you like help with?\n`;help roles` `;help fact` `;help suggestion` `;help roll` `;help serverinfo`");
             } else if (msg.content.includes("roll")) {
                 let number = msg.content.match(/\d+/g);
                 roll(number, msg);            
             } else if (msg.content.includes("say") || msg.content.includes("said")) {
-                tts(msg.content);
+                tts(msg.content, msg);
             } else if (msg.content.includes("time") || msg.content.includes("Time")) {
-                getTime();
+                getTime(msg);
             } else if (msg.content.includes("date") || msg.content.includes("Date")) {
-                getDate();
+                getDate(msg);
             } else if (msg.content.includes("move") || msg.content.includes("Move") || msg.content.includes("movie") || msg.content.includes("Movie")) {
                 moveTo(msg);
             } else if (msg.content.includes("tell me about")) {
@@ -502,7 +514,7 @@ client.on("speech", (msg) => {
                 }
                 let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
                 let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
-                tts(randomMsg);
+                tts(randomMsg, msg);
             } 
         } else {return;}
     }
@@ -526,7 +538,7 @@ async function wikipedia(msg) {
 
         let summarySplit = summary.extract.split(".")
         if (summarySplit.length < 200) {
-            tts(summarySplit[0]);
+            tts(summarySplit[0], msg);
         }
         else {
             return;
@@ -568,16 +580,16 @@ function moveTo(msg) {
     }
 }
 
-function getTime() {
+function getTime(msg) {
     var today = new Date();
     var time = today.getHours() + ":" + today.getMinutes();
-    tts(time);
+    tts(time, msg);
 }
 
 function getDate() {
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-    tts(date);
+    tts(date, msg);
 }
 
 function roll(args, msg) {
@@ -593,7 +605,7 @@ function roll(args, msg) {
                 textChannel.send("‎\n<@" + msg.author.id + ">\n" + `${wApo} 𝙧𝙤𝙡𝙡𝙚𝙙 ${randomNumber.toString()} ${wApo}`)
                 console.log(randomNumber);
                 numString = randomNumber.toString();
-                tts(numString)
+                tts(numString, msg)
             }
         }
     } catch {
@@ -602,8 +614,13 @@ function roll(args, msg) {
 }
 
 
-async function tts(message) {
+async function tts(message, msg) {
     try {
+        if (isPlaying) {
+            currentDuration = player.state.playbackDuration;
+            player.stop();
+            subscription.unsubscribe(player);
+        }
         let trimmedMsg = message.replace(/Sonic say/g, '');
         const stream = discordTTS.getVoiceStream(trimmedMsg);
         const audioResource = createAudioResource(stream, {
@@ -611,11 +628,18 @@ async function tts(message) {
             inlineVolume: true
         });
         if (voiceConnection.status === VoiceConnectionStatus.Connected) {
-            voiceConnection.subscribe(audioPlayer);
+            subscription = voiceConnection.subscribe(audioPlayer);
             audioPlayer.play(audioResource);
         }
-    } catch {
-        (console.log("Error with tts"));
+        audioPlayer.on(AudioPlayerStatus.Idle, () => {
+            subscription.unsubscribe(audioPlayer);
+            subscription = voiceConnection.subscribe(player);
+            let resume = true
+            video_player(currentGuild, currentSong, msg, resume)
+        });
+    } catch (e) {
+        //(console.log("Error with tts"));
+        (console.error || console.log).call(console, e.stack || e);
     }
 
 }
@@ -748,6 +772,12 @@ function skipCommand(arguments, receivedMessage) {
 }
 async function leaveCommand(arguments, receivedMessage) {
     if(voiceConnection) {
+        try {
+            subscription.unsubscribe(player);
+            server_queue = "";
+        } catch {
+            subscription.unsubscribe(audioPlayer);
+        }
         voiceConnection = await voiceConnection.destroy();
     }
     if (!globalInteraction) {
@@ -756,31 +786,46 @@ async function leaveCommand(arguments, receivedMessage) {
         let interaction = globalInteraction;
         let isVoiceMsg = true;
         msgStatus = "standby";
-        setTimeout(() => { checkMsg(receivedMessage, isVoiceMsg) }, 500);
+        //setTimeout(() => { checkMsg(receivedMessage, isVoiceMsg) }, 500);
     }    
 }
 
-const video_player = async (guild, song, receivedMessage) => {
+const video_player = async (guild, song, receivedMessage, resume) => {
     const song_queue = queue.get(guild.id);
-    
-    if (!song) {
-        queue.delete(guild.id);
-        return;
+
+    if(resume) {
+        console.log(currentDuration);
+        const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly' }));
+        isPlaying = true;
+        currentSong = song;
+        player.play(stream, { seek: 10000, volume: 0.1 });
+    } else {
+        if (!song) {
+            queue.delete(guild.id);
+            return;
+        }
+
+        const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', volume: 0.1 }));
+        isPlaying = true;
+        currentSong = song;
+        player.play(stream, {seek: 10000, volume: 0.1});
+
+        await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
     }
-
-    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', volume: 2 }));
-    player.play(stream);
-    
-    await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
-
     player.on(AudioPlayerStatus.Idle, () => {
+        console.log("idle");
         if (!server_queue || server_queue.songs.length === 0) {
+            isPlaying = false;
             queue.delete(receivedMessage.guild.id);
-            server_queue = queue.get(receivedMessage.guild.id);
+            server_queue = "";
             return;
         } else {
             server_queue.songs.shift();
-            player.play(getNextResource("", receivedMessage));
+            try{
+                player.play(getNextResource("", receivedMessage));
+            } catch (e) {
+                (console.error || console.log).call(console, e.stack || e);
+            }
         }
     });
 
@@ -826,7 +871,7 @@ const stop_song = (arguments, receivedMessage) => {
 
 client.on("ready", async () => {
     console.log("Ready!");
-    //client.user.setStatus("dnd");
+    client.user.setPresence({ activities: [{ type: 'STREAMING', name: 'the AI Takeover', url: 'https://www.twitch.tv/voidedrl' }], status: 'dnd' });
     try {
         const messages = await client.channels.cache.get(botCommands).messages.fetch();
         let theMsg = messages.filter((msg) => msg.id.startsWith(lastMsgId[0].id));
@@ -863,7 +908,7 @@ async function buttonJoin (interaction) {
                 player.on(AudioPlayerStatus.Playing, () => {
                         // Do whatever you need to do when playing
                 });
-                voiceConnection.subscribe(player);
+                subscription = voiceConnection.subscribe(player);
             }
         }
     } catch {console.log("Error joining voice channel");}
