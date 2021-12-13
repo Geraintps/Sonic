@@ -826,6 +826,7 @@ const stop_song = (arguments, receivedMessage) => {
 
 client.on("ready", async () => {
     console.log("Ready!");
+    //client.user.setStatus("dnd");
     try {
         const messages = await client.channels.cache.get(botCommands).messages.fetch();
         let theMsg = messages.filter((msg) => msg.id.startsWith(lastMsgId[0].id));
@@ -890,4 +891,4 @@ client.on('interactionCreate', async (interaction) => {
     }
 });
 
-client.login(secret[0]);
+client.login(secret);
