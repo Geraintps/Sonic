@@ -515,6 +515,8 @@ client.on("speech", (msg) => {
                     user = "Lewis";
                 } else if(msg.author=="407179353999409153") {
                     user = "Kiwi";
+                } else {
+                    user = "dude";
                 }
                 let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
                 let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
