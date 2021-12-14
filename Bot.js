@@ -656,107 +656,117 @@ async function tts(message, msg) {
 }
 
 async function playCommand(arguments, receivedMessage) {
-    server_queue = queue.get(receivedMessage.guild.id);
-    let song = {};
-    if (ytdl.validateURL(arguments[0])) {
-        const song_info = await ytdl.getInfo(arguments[0]);
-        song = { title: song_info.videoDetails.title, url: song_info.videoDetails.video_url, duration: song_info.videoDetails.lengthSeconds }
-    } else {
-        if (arguments == "") {
-            client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙚𝙣𝙩𝙚𝙧 𝙖 𝙨𝙤𝙣𝙜 𝙣𝙖𝙢𝙚 ${wApo}`)
-        } else {
-            const video_finder = async (query) => {
-                const videoResult = await ytSearch(query);
-                return (videoResult.videos.length > 1) ? videoResult.videos[0] : null
-            }
-
-            const video = await video_finder(arguments);
-            if (video) {
-                song = { title: video.title, url: video.url, duration: video.duration }
+    try{
+        const voice_Channel = receivedMessage.member ?.voice.channel;
+        if (voice_Channel){
+            server_queue = queue.get(receivedMessage.guild.id);
+            let song = {};
+            if (ytdl.validateURL(arguments[0])) {
+                const song_info = await ytdl.getInfo(arguments[0]);
+                song = { title: song_info.videoDetails.title, url: song_info.videoDetails.video_url, duration: song_info.videoDetails.lengthSeconds }
             } else {
-                client.channels.cache.get(botCommands).send("Error finding video");
-            }
-        }
-    }
-
-    if (!server_queue) {
-        if (arguments == "") {
-            console.log("No args")
-        } else {
-            const queue_constructor = {
-                voice_channel: receivedMessage.member.voice.channel.id,
-                text_channel: receivedMessage.channel.id,
-                connection: null,
-                songs: []
-            }
-
-            queue.set(receivedMessage.guild.id, queue_constructor);
-            queue_constructor.songs.push(song);
-            
-            try {
-                if(!voiceConnection) {
-                    const connection = joinVoiceChannel({
-                        channelId: receivedMessage.member.voice.channel.id,
-                        guildId: receivedMessage.guild.id,
-                        adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                        selfMute: false,
-                        selfDeaf: false
-                    })
+                if (arguments == "") {
+                    client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙚𝙣𝙩𝙚𝙧 𝙖 𝙨𝙤𝙣𝙜 𝙣𝙖𝙢𝙚 ${wApo}`)
                 } else {
-                    voiceConnection.subscribe(player);
-                    queue_constructor.connection = voiceConnection;
-                    firstPlay = true;
-                    video_player(receivedMessage.guild, queue_constructor.songs[0], receivedMessage);
+                    const video_finder = async (query) => {
+                        const videoResult = await ytSearch(query);
+                        return (videoResult.videos.length > 1) ? videoResult.videos[0] : null
+                    }
+
+                    const video = await video_finder(arguments);
+                    if (video) {
+                        song = { title: video.title, url: video.url, duration: video.duration }
+                    } else {
+                        client.channels.cache.get(botCommands).send("Error finding video");
+                    }
                 }
-                
-            } catch (err) {
-                queue.delete(receivedMessage.guild.id)
-                client.channels.cache.get(botCommands).send("There was an error connecting!");
-                throw err;
-            }
-        }
-    } else if (server_queue.songs.length === 0){
-        if (arguments == "") {
-            console.log("No args")
-        } else {
-            const queue_constructor = {
-                voice_channel: receivedMessage.member.voice.channel.id,
-                text_channel: receivedMessage.channel.id,
-                connection: null,
-                songs: []
             }
 
-            queue.set(receivedMessage.guild.id, queue_constructor);
-            queue_constructor.songs.push(song);
 
-            try {
-                if(!voiceConnection) {
-                    const connection = joinVoiceChannel({
-                        channelId: receivedMessage.member.voice.channel.id,
-                        guildId: receivedMessage.guild.id,
-                        adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                        selfMute: false,
-                        selfDeaf: false
-                    })
+            if (!server_queue) {
+                if (arguments == "") {
+                    console.log("No args")
                 } else {
-                    voiceConnection.subscribe(player);
-                    queue_constructor.connection = voiceConnection;
-                    video_player(receivedMessage.guild, queue_constructor.songs[0], receivedMessage);
+                    const queue_constructor = {
+                        voice_channel: receivedMessage.member.voice.channel.id,
+                        text_channel: receivedMessage.channel.id,
+                        connection: null,
+                        songs: []
+                    }
+
+                    queue.set(receivedMessage.guild.id, queue_constructor);
+                    queue_constructor.songs.push(song);
+
+                    try {
+                        if(!voiceConnection) {
+                            const connection = joinVoiceChannel({
+                                channelId: receivedMessage.member.voice.channel.id,
+                                guildId: receivedMessage.guild.id,
+                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
+                                selfMute: false,
+                                selfDeaf: false
+                            })
+                        } else {
+                            voiceConnection.subscribe(player);
+                            queue_constructor.connection = voiceConnection;
+                            firstPlay = true;
+                            video_player(receivedMessage.guild, queue_constructor.songs[0], receivedMessage);
+                        }
+
+                    } catch (err) {
+                        queue.delete(receivedMessage.guild.id)
+                        client.channels.cache.get(botCommands).send("There was an error connecting!");
+                        throw err;
+                    }
                 }
-                
-            } catch (err) {
-                queue.delete(receivedMessage.guild.id)
-                client.channels.cache.get(botCommands).send("There was an error connecting!");
-                throw err;
+            } else if (server_queue.songs.length === 0){
+                if (arguments == "") {
+                    console.log("No args")
+                } else {
+                    const queue_constructor = {
+                        voice_channel: receivedMessage.member.voice.channel.id,
+                        text_channel: receivedMessage.channel.id,
+                        connection: null,
+                        songs: []
+                    }
+
+                    queue.set(receivedMessage.guild.id, queue_constructor);
+                    queue_constructor.songs.push(song);
+
+                    try {
+                        if(!voiceConnection) {
+                            const connection = joinVoiceChannel({
+                                channelId: receivedMessage.member.voice.channel.id,
+                                guildId: receivedMessage.guild.id,
+                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
+                                selfMute: false,
+                                selfDeaf: false
+                            })
+                        } else {
+                            voiceConnection.subscribe(player);
+                            queue_constructor.connection = voiceConnection;
+                            video_player(receivedMessage.guild, queue_constructor.songs[0], receivedMessage);
+                        }
+
+                    } catch (err) {
+                        queue.delete(receivedMessage.guild.id)
+                        client.channels.cache.get(botCommands).send("There was an error connecting!");
+                        throw err;
+                    }
+                }
+            } else {
+                if (arguments == "") {
+                    console.log("No args");
+                } else {
+                    server_queue.songs.push(song);
+                    return client.channels.cache.get(botCommands).send(`‎\n${wApo} ∿ 𝙦𝙪𝙚𝙪𝙞𝙣𝙜 ⫸ ${song.title.toLowerCase()}〈${song.duration.timestamp}〉${wApo}`);
+                }
             }
-        }
-    } else {
-        if (arguments == "") {
-            console.log("No args");
         } else {
-            server_queue.songs.push(song);
-            return client.channels.cache.get(botCommands).send(`‎\n${wApo} ∿ 𝙦𝙪𝙚𝙪𝙞𝙣𝙜 ⫸ ${song.title.toLowerCase()}〈${song.duration.timestamp}〉${wApo}`);
+            receivedMessage.channel.send("You must be in a voice channel to use this command");
         }
+    } catch (e){
+        (console.error || console.log).call(console, e.stack || e);
     }
 }
 async function pauseCommand(arguments, receivedMessage) {
@@ -786,10 +796,12 @@ async function leaveCommand(arguments, receivedMessage) {
         try {
             subscription.unsubscribe(player);
             server_queue = "";
-        } catch {
+            queue.delete(receivedMessage.guild.id)
             subscription.unsubscribe(audioPlayer);
+            voiceConnection = await voiceConnection.destroy();
+        } catch (e) {
+            (console.error || console.log).call(console, e.stack || e);
         }
-        voiceConnection = await voiceConnection.destroy();
     }
     if (!globalInteraction) {
         return;
@@ -908,11 +920,12 @@ async function buttonJoin (interaction) {
                         inputType: StreamType.Arbitrary,
                         volume: 2
                     });
+                subscription = voiceConnection.subscribe(player);
                 player.play(resource);
                 player.on(AudioPlayerStatus.Playing, () => {
                         // Do whatever you need to do when playing
                 });
-                subscription = voiceConnection.subscribe(player);
+                
             }
         }
     } catch {console.log("Error joining voice channel");}
@@ -936,7 +949,7 @@ client.on('interactionCreate', async (interaction) => {
         await wait(100);
         await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
         msgStatus = "standby";
-        leaveCommand();
+        leaveCommand("", interaction);
     }
 });
 
