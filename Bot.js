@@ -828,7 +828,6 @@ const video_player = async (guild, song, receivedMessage, resume) => {
     await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
     
     player.on(AudioPlayerStatus.Idle, () => {
-        console.log("idle");
         if (!server_queue || server_queue.songs.length === 0) {
             isPlaying = false;
             queue.delete(receivedMessage.guild.id);
