@@ -176,6 +176,7 @@ let btnContent;
 let isPlaying = false;
 let currentSong;
 let subscription;
+let subscription2;
 let currentGuild;
 let currentDuration;
 
@@ -290,6 +291,9 @@ client.on("messageCreate", async (msg) => {
             } else if (msg.content.includes(";skip")) {  
                 //let args = msg.content.replace(/;play /g,'');
                 skipCommand("", msg);
+            } else if (msg.content.includes(";time")) {  
+                //let args = msg.content.replace(/;play /g,'');
+                getTime(msg);
             } else if (msg.content.includes("Sonic tell me about lemons")) {
                 await pauseCommand();
                 let theMsg = await wikipedia(msg);
@@ -582,11 +586,19 @@ function moveTo(msg) {
 
 function getTime(msg) {
     var today = new Date();
-    var time = today.getHours() + ":" + today.getMinutes();
+    var hour = today.getHours();
+    var minute = today.getMinutes();
+    if(hour.length < 2) {
+        hour = "0" + hour;
+    }
+    if(minute.length < 2) {
+        hour = "0" + minute;
+    }
+    var time = hour + ", " + minute;
     tts(time, msg);
 }
 
-function getDate() {
+function getDate(msg) {
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     tts(date, msg);
@@ -618,8 +630,7 @@ async function tts(message, msg) {
     try {
         if (isPlaying) {
             currentDuration = player.state.playbackDuration;
-            player.stop();
-            subscription.unsubscribe(player);
+            player.pause();
         }
         let trimmedMsg = message.replace(/Sonic say/g, '');
         const stream = discordTTS.getVoiceStream(trimmedMsg);
@@ -628,14 +639,14 @@ async function tts(message, msg) {
             inlineVolume: true
         });
         if (voiceConnection.status === VoiceConnectionStatus.Connected) {
-            subscription = voiceConnection.subscribe(audioPlayer);
+            subscription2 = voiceConnection.subscribe(audioPlayer);
             audioPlayer.play(audioResource);
         }
         audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            subscription.unsubscribe(audioPlayer);
+            subscription2.unsubscribe(audioPlayer);
             subscription = voiceConnection.subscribe(player);
-            let resume = true
-            video_player(currentGuild, currentSong, msg, resume)
+            let resume = true;
+            player.unpause();
         });
     } catch (e) {
         //(console.log("Error with tts"));
@@ -793,25 +804,17 @@ async function leaveCommand(arguments, receivedMessage) {
 const video_player = async (guild, song, receivedMessage, resume) => {
     const song_queue = queue.get(guild.id);
 
-    if(resume) {
-        console.log(currentDuration);
-        const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly' }));
-        isPlaying = true;
-        currentSong = song;
-        player.play(stream, { seek: 10000, volume: 0.1 });
-    } else {
-        if (!song) {
-            queue.delete(guild.id);
-            return;
-        }
-
-        const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', volume: 0.1 }));
-        isPlaying = true;
-        currentSong = song;
-        player.play(stream, {seek: 10000, volume: 0.1});
-
-        await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
+  
+    if (!song) {
+        queue.delete(guild.id);
+        return;
     }
+    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', volume: 0.1 }));
+    isPlaying = true;
+    currentSong = song;
+    player.play(stream, {volume: 0.1});
+    await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
+    
     player.on(AudioPlayerStatus.Idle, () => {
         console.log("idle");
         if (!server_queue || server_queue.songs.length === 0) {
@@ -831,6 +834,7 @@ const video_player = async (guild, song, receivedMessage, resume) => {
 
     player.on('error', error => {
         console.error("Playback error");
+        client.channels.cache.get(botCommands).send("Sorry! I ran into an problem, please try again :)")
         skipCommand("", receivedMessage);
     });
     
