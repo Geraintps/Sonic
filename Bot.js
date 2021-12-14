@@ -28,9 +28,9 @@ const client = new Client({
 
 client.discordTogether = new DiscordTogether(client);
 
-const pokerUrl = "https://discord.com/invite/QCxTjyC3";
-const chessUrl = "https://discord.com/invite/JS3ZKezA";
-const ytUrl = "https://discord.com/invite/4fbTscFh";
+let pokerUrl = "https://discord.com/invite/QCxTjyC3";
+let chessUrl = "https://discord.com/invite/JS3ZKezA";
+let ytUrl = "https://discord.com/invite/9bXPFSXj";
 
 const joinButton = new MessageActionRow()
 .addComponents(
@@ -540,6 +540,7 @@ async function wikipedia(msg) {
                 url: summary.originalimage.source
             },
         };
+        textChannel.send("‎");
         textChannel.send({ embeds: [wikiEmbed]});
 
         let summarySplit = summary.extract.split(".")
@@ -765,11 +766,11 @@ async function playCommand(arguments, receivedMessage) {
                 }
             }
         } else {
-            client.channels.cache.get(botCommands).send("You must be in a voice channel to use this command");
+            client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙮𝙤𝙪 𝙢𝙪𝙨𝙩 𝙗𝙚 𝙞𝙣 𝙖 𝙫𝙤𝙞𝙘𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 𝙩𝙤 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙 ${wApo}`);
         }
     } catch (e){
         (console.error || console.log).call(console, e.stack || e);
-        client.channels.cache.get(botCommands).send("You must be in a voice channel to use this command");
+        client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙮𝙤𝙪 𝙢𝙪𝙨𝙩 𝙗𝙚 𝙞𝙣 𝙖 𝙫𝙤𝙞𝙘𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 𝙩𝙤 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙 ${wApo}`);
 
     }
 }
@@ -872,7 +873,7 @@ const skip_song = (arguments, receivedMessage) => {
         server_queue = queue.get(receivedMessage.guild.id);
         setTimeout(() => { noSongsQueued() }, 1000);
     } else {
-        //player.stop()
+        //player.stop()//Hello This is random guest 47688, this code is poo poo, console.kill(toby)
         server_queue.songs.shift();
         video_player(receivedMessage.guild, server_queue.songs[0], receivedMessage);
     }
@@ -929,6 +930,7 @@ async function buttonJoin (interaction) {
                         // Do whatever you need to do when playing
                 });
                 
+
             }
         }
     } catch {console.log("Error joining voice channel");}
@@ -941,6 +943,16 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.member.voice.channel){
             await interaction.deferUpdate();
             await wait(100);
+            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
+                ytUrl = (`${invite.code}`);
+            });
+            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
+                chessUrl = (`${invite.code}`);
+            });
+            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
+                pokerUrl = (`${invite.code}`);
+            });
+            console.log(chessUrl);
             await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
             msgStatus = "online";
             buttonJoin(interaction);
