@@ -765,10 +765,12 @@ async function playCommand(arguments, receivedMessage) {
                 }
             }
         } else {
-            receivedMessage.channel.send("You must be in a voice channel to use this command");
+            client.channels.cache.get(botCommands).send("You must be in a voice channel to use this command");
         }
     } catch (e){
         (console.error || console.log).call(console, e.stack || e);
+        client.channels.cache.get(botCommands).send("You must be in a voice channel to use this command");
+
     }
 }
 async function pauseCommand(arguments, receivedMessage) {
@@ -880,8 +882,8 @@ const stop_song = (arguments, receivedMessage) => {
     if (!receivedMessage.member.voice.channel) return client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙮𝙤𝙪 𝙣𝙚𝙚𝙙 𝙩𝙤 𝙗𝙚 𝙞𝙣 𝙖 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 𝙩𝙤 𝙪𝙨𝙚 𝙩𝙝𝙞𝙨 𝙘𝙤𝙢𝙢𝙖𝙣𝙙 ${wApo}`)
     
     player.stop();
-    // queue.delete(receivedMessage.guild.id);
-    // server_queue = queue.get(receivedMessage.guild.id);
+    queue.delete(receivedMessage.guild.id);
+    server_queue = "";
     client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙥𝙡𝙖𝙮𝙗𝙖𝙘𝙠 𝙨𝙩𝙤𝙥𝙥𝙚𝙙 ${wApo}`
     );
 }
