@@ -83,7 +83,7 @@ const standbyButton = new MessageActionRow()
         .setStyle('SECONDARY')
         .setDisabled(true),
 );
-const activityButtonJoin = new MessageActionRow()
+let activityButtonJoin = new MessageActionRow()
 .addComponents(
     new MessageButton()
         .setCustomId('paddingLeft1')
@@ -108,7 +108,7 @@ const activityButtonJoin = new MessageActionRow()
         .setStyle('SECONDARY')
         .setDisabled(true)
 );
-const activityButtonJoined = new MessageActionRow()
+let activityButtonJoined = new MessageActionRow()
 .addComponents(
     new MessageButton()
         .setCustomId('paddingLeft2')
@@ -133,7 +133,7 @@ const activityButtonJoined = new MessageActionRow()
         .setStyle('SECONDARY')
         .setDisabled(true)
 );
-const activityButtonStandby = new MessageActionRow()
+let activityButtonStandby = new MessageActionRow()
 .addComponents(
     new MessageButton()
         .setCustomId('paddingLeft3')
@@ -159,6 +159,84 @@ const activityButtonStandby = new MessageActionRow()
         .setDisabled(true)
 );
 
+function newButtons() {
+    activityButtonJoin = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+            .setCustomId('paddingLeft1')
+            .setLabel('░░░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true),
+            new MessageButton()
+            .setURL(chessUrl)
+            .setLabel(' 𝐂𝐇𝐄𝐒𝐒 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(ytUrl)
+            .setLabel(' 𝐘𝐨𝐮𝐓𝐮𝐛𝐞 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(pokerUrl)
+            .setLabel(' 𝐏𝐎𝐊𝐄𝐑 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setCustomId('paddingRight1')
+            .setLabel('░░░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true)
+        );
+    activityButtonJoined = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+            .setCustomId('paddingLeft2')
+            .setLabel('░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true),
+            new MessageButton()
+            .setURL(chessUrl)
+            .setLabel(' 𝐂𝐇𝐄𝐒𝐒 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(ytUrl)
+            .setLabel(' 𝐘𝐨𝐮𝐓𝐮𝐛𝐞 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(pokerUrl)
+            .setLabel('𝐏𝐎𝐊𝐄𝐑')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setCustomId('paddingRight2')
+            .setLabel('░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true)
+        );
+    activityButtonStandby = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+            .setCustomId('paddingLeft3')
+            .setLabel('░░░░░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true),
+            new MessageButton()
+            .setURL(chessUrl)
+            .setLabel(' 𝐂𝐇𝐄𝐒𝐒 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(ytUrl)
+            .setLabel(' 𝐘𝐨𝐮𝐓𝐮𝐛𝐞 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setURL(pokerUrl)
+            .setLabel(' 𝐏𝐎𝐊𝐄𝐑 ')
+            .setStyle('LINK'),
+            new MessageButton()
+            .setCustomId('paddingRight3')
+            .setLabel('░░░░░░░░░░░░░░░░░░░░░░░')
+            .setStyle('SECONDARY')
+            .setDisabled(true)
+        );
+}
+
 addSpeechEvent(client, {profanityFilter: false});
 
 let wApo = '`';
@@ -179,6 +257,7 @@ let subscription;
 let subscription2;
 let currentGuild;
 let currentDuration;
+let isError = false;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -847,11 +926,22 @@ const video_player = async (guild, song, receivedMessage, resume) => {
             }
         }
     });
-
+    player.on(AudioPlayerStatus.Playing, () => {
+        if (isError) {
+            isError = false;
+        } else {
+            return;
+        }
+    });
     player.on('error', error => {
-        console.error("Playback error");
-        client.channels.cache.get(botCommands).send("Sorry! I ran into an problem, please try again :)")
-        skipCommand("", receivedMessage);
+        if (!isError) {
+            console.error("Playback error");
+            client.channels.cache.get(botCommands).send("Sorry! I ran into an problem, please try again :)");
+            isError = true;
+            skipCommand("", receivedMessage);
+        } else {
+            return;
+        }
     });
     
 }
@@ -861,7 +951,9 @@ const getNextResource = (args, receivedMessage) => {
 }
 
 function noSongsQueued() {
-    client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙩𝙝𝙚𝙧𝙚 𝙖𝙧𝙚 𝙣𝙤 𝙨𝙤𝙣𝙜𝙨 𝙦𝙪𝙚𝙪𝙚𝙙 ${wApo}`);
+    if(!isError) {
+        client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙩𝙝𝙚𝙧𝙚 𝙖𝙧𝙚 𝙣𝙤 𝙨𝙤𝙣𝙜𝙨 𝙦𝙪𝙚𝙪𝙚𝙙 ${wApo}`);
+    } else {return;}
 }
 
 const skip_song = (arguments, receivedMessage) => {
@@ -943,16 +1035,17 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.member.voice.channel){
             await interaction.deferUpdate();
             await wait(100);
-            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
+            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
                 ytUrl = (`${invite.code}`);
             });
-            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
+            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
                 chessUrl = (`${invite.code}`);
             });
-            client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
+            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
                 pokerUrl = (`${invite.code}`);
             });
-            console.log(chessUrl);
+            //console.log(chessUrl);
+            newButtons();
             await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
             msgStatus = "online";
             buttonJoin(interaction);
