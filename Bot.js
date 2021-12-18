@@ -16,6 +16,7 @@ const { DiscordTogether } = require('discord-together');
 const secret = require('./clientSecret.json');
 const talkedRecently = new Set();
 
+
 const client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,
@@ -258,6 +259,7 @@ let subscription2;
 let currentGuild;
 let currentDuration;
 let isError = false;
+let isReply = false;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -302,7 +304,7 @@ async function checkMsg(msg, isVoiceMsg) {
     }
     try{
         if (msg) {
-            if( !isVoiceMsg && msg.author != client.user ) {
+            if( !isVoiceMsg && msg.author != client.user && !isReply ) {
                 await msg.delete();
             } else {
                 await mainMsg.delete();
@@ -323,6 +325,9 @@ async function checkMsg(msg, isVoiceMsg) {
 
 client.on("messageCreate", async (msg) => {
     try{
+        if(msg.type != "APPLICATION_COMMAND"){
+            isReply = false;
+        }
         currentGuild = msg.guild;
         setTimeout(() => { initialCheckMsg(msg) }, 500);
         if (talkedRecently.has(msg.author.id)) {
@@ -1029,36 +1034,67 @@ async function buttonJoin (interaction) {
 }
 
 client.on('interactionCreate', async (interaction) => {
-	if (!interaction.isButton()) return;
-    globalInteraction = interaction;
-    if (interaction.customId === 'join') {
-        if (interaction.member.voice.channel){
+	if (interaction.isButton()) {
+        globalInteraction = interaction;
+        if (interaction.customId === 'join') {
+            if (interaction.member.voice.channel){
+                await interaction.deferUpdate();
+                await wait(100);
+                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
+                    ytUrl = (`${invite.code}`);
+                });
+                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
+                    chessUrl = (`${invite.code}`);
+                });
+                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
+                    pokerUrl = (`${invite.code}`);
+                });
+                //console.log(chessUrl);
+                newButtons();
+                await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
+                msgStatus = "online";
+                buttonJoin(interaction);
+                storeId();
+            }
+        }
+        if (interaction.customId === 'disconnect') {
             await interaction.deferUpdate();
             await wait(100);
-            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
-                ytUrl = (`${invite.code}`);
-            });
-            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
-                chessUrl = (`${invite.code}`);
-            });
-            await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
-                pokerUrl = (`${invite.code}`);
-            });
-            //console.log(chessUrl);
-            newButtons();
-            await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
-            msgStatus = "online";
-            buttonJoin(interaction);
-            storeId();
+            await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
+            msgStatus = "standby";
+            leaveCommand("", interaction);
         }
-    }
-    if (interaction.customId === 'disconnect') {
-        await interaction.deferUpdate();
-        await wait(100);
-        await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
-        msgStatus = "standby";
-        leaveCommand("", interaction);
-    }
+    } else if (interaction.isCommand()) {
+        const { commandName } = interaction;
+        isReply = true;
+
+	    if (commandName === 'ping') {
+	    	await interaction.reply('Pong!');
+	    } else if (commandName === 'server') {
+	    	await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+	    } else if (commandName === 'user') {
+	    	await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+	    } else if (commandName === 'play') {
+            let args = interaction.options.getString('song');
+            await interaction.reply(`Searching ` + args + `...`);
+            playCommand(args, interaction);
+        } else if (commandName === 'skip') {
+            await interaction.reply(`Skipping ...`);
+            skipCommand("", interaction);
+        } else if (commandName === 'stop') {
+            await interaction.reply(`Stopping ...`);
+            stopCommand("", interaction);
+        } else if (commandName === 'pause') {
+            await interaction.reply(`Pausing ...`);
+            pauseCommand("", interaction);
+        } else if (commandName === 'resume') {
+            await interaction.reply(`Resuming ...`);
+            resumeCommand("", interaction);
+        } else if (commandName === 'keep') {
+            let args = interaction.options.getString('message');
+            await interaction.reply(args);
+        }
+    } else {return;}
 });
 
 client.login(secret);
