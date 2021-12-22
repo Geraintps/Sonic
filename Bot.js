@@ -1034,67 +1034,69 @@ async function buttonJoin (interaction) {
 }
 
 client.on('interactionCreate', async (interaction) => {
-	if (interaction.isButton()) {
-        globalInteraction = interaction;
-        if (interaction.customId === 'join') {
-            if (interaction.member.voice.channel){
+    try{
+	    if (interaction.isButton()) {
+            globalInteraction = interaction;
+            if (interaction.customId === 'join') {
+                if (interaction.member.voice.channel){
+                    await interaction.deferUpdate();
+                    await wait(100);
+                    await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
+                        ytUrl = (`${invite.code}`);
+                    });
+                    await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
+                        chessUrl = (`${invite.code}`);
+                    });
+                    await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
+                        pokerUrl = (`${invite.code}`);
+                    });
+                    //console.log(chessUrl);
+                    newButtons();
+                    await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
+                    msgStatus = "online";
+                    buttonJoin(interaction);
+                    storeId();
+                }
+            }
+            if (interaction.customId === 'disconnect') {
                 await interaction.deferUpdate();
                 await wait(100);
-                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'youtube').then(invite => {
-                    ytUrl = (`${invite.code}`);
-                });
-                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'chess').then(invite => {
-                    chessUrl = (`${invite.code}`);
-                });
-                await client.discordTogether.createTogetherCode(interaction.member.voice.channel.id, 'poker').then(invite => {
-                    pokerUrl = (`${invite.code}`);
-                });
-                //console.log(chessUrl);
-                newButtons();
-                await interaction.editReply({ content: joinedContent, components: [activityButtonJoined, joinedButton] });
-                msgStatus = "online";
-                buttonJoin(interaction);
-                storeId();
+                await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
+                msgStatus = "standby";
+                leaveCommand("", interaction);
             }
-        }
-        if (interaction.customId === 'disconnect') {
-            await interaction.deferUpdate();
-            await wait(100);
-            await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
-            msgStatus = "standby";
-            leaveCommand("", interaction);
-        }
-    } else if (interaction.isCommand()) {
-        const { commandName } = interaction;
-        isReply = true;
-
-	    if (commandName === 'ping') {
-	    	await interaction.reply('Pong!');
-	    } else if (commandName === 'server') {
-	    	await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-	    } else if (commandName === 'user') {
-	    	await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
-	    } else if (commandName === 'play') {
-            let args = interaction.options.getString('song');
-            await interaction.reply(`Searching ` + args + `...`);
-            playCommand(args, interaction);
-        } else if (commandName === 'skip') {
-            await interaction.reply(`Skipping ...`);
-            skipCommand("", interaction);
-        } else if (commandName === 'stop') {
-            await interaction.reply(`Stopping ...`);
-            stopCommand("", interaction);
-        } else if (commandName === 'pause') {
-            await interaction.reply(`Pausing ...`);
-            pauseCommand("", interaction);
-        } else if (commandName === 'resume') {
-            await interaction.reply(`Resuming ...`);
-            resumeCommand("", interaction);
-        } else if (commandName === 'keep') {
-            let args = interaction.options.getString('message');
-            await interaction.reply(args);
-        }
-    } else {return;}
+        } else if (interaction.isCommand()) {
+            const { commandName } = interaction;
+            isReply = true;
+        
+	        if (commandName === 'ping') {
+	        	await interaction.reply('Pong!');
+	        } else if (commandName === 'server') {
+	        	await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+	        } else if (commandName === 'user') {
+	        	await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+	        } else if (commandName === 'play') {
+                let args = interaction.options.getString('song');
+                await interaction.reply(`Searching ` + args + `...`);
+                playCommand(args, interaction);
+            } else if (commandName === 'skip') {
+                await interaction.reply(`Skipping ...`);
+                skipCommand("", interaction);
+            } else if (commandName === 'stop') {
+                await interaction.reply(`Stopping ...`);
+                stopCommand("", interaction);
+            } else if (commandName === 'pause') {
+                await interaction.reply(`Pausing ...`);
+                pauseCommand("", interaction);
+            } else if (commandName === 'resume') {
+                await interaction.reply(`Resuming ...`);
+                resumeCommand("", interaction);
+            } else if (commandName === 'keep') {
+                let args = interaction.options.getString('message');
+                await interaction.reply(args);
+            }
+        } else {return;}
+    } catch (e) {console.log(e);}
 });
 
 client.login(secret);
