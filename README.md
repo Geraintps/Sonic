@@ -10,6 +10,7 @@ Discord Bot
  - Text-To-Speech
  - Custom UI
  - Button interaction
+ - Discord Together
 
 
  - Voice Control:
