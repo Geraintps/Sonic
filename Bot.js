@@ -256,6 +256,7 @@ let isPlaying = false;
 let currentSong;
 let subscription;
 let subscription2;
+let subscription3;
 let currentGuild;
 let currentDuration;
 let isError = false;
@@ -883,10 +884,28 @@ function skipCommand(arguments, receivedMessage) {
 async function leaveCommand(arguments, receivedMessage) {
     if(voiceConnection) {
         try {
-            subscription.unsubscribe(player);
+            if (subscription && subscription2 && subscription3) {
+                subscription.unsubscribe(player);
+                subscription2.unsubscribe(audioPlayer);
+                subscription3.unsubscribe(player);
+            } else if (subscription && subscription2) {
+                subscription.unsubscribe(player);
+                subscription2.unsubscribe(audioPlayer);
+            } else if (subscription && subscription3) {
+                subscription.unsubscribe(player);
+                subscription3.unsubscribe(player);
+            } else if (subscription2 && subscription3) {
+                subscription2.unsubscribe(audioPlayer);
+                subscription3.unsubscribe(player);
+            } else if(subscription){
+                subscription.unsubscribe(player);
+            } else if (subscription2) {
+                subscription2.unsubscribe(audioPlayer);
+            } else if (subscription3) {
+                subscription3.unsubscribe(player);
+            }
             server_queue = "";
             queue.delete(receivedMessage.guild.id)
-            subscription.unsubscribe(audioPlayer);
             voiceConnection = await voiceConnection.destroy();
         } catch (e) {
             (console.error || console.log).call(console, e.stack || e);
@@ -1021,10 +1040,14 @@ async function buttonJoin (interaction) {
                         inputType: StreamType.Arbitrary,
                         volume: 2
                     });
-                subscription = voiceConnection.subscribe(player);
+                subscription3 = voiceConnection.subscribe(player);
                 player.play(resource);
                 player.on(AudioPlayerStatus.Playing, () => {
                         // Do whatever you need to do when playing
+                });
+                player.on(AudioPlayerStatus.Idle, () => {
+                    subscription3.unsubscribe(audioPlayer);
+                    subscription = voiceConnection.subscribe(player);
                 });
                 
 
