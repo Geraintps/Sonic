@@ -9,6 +9,7 @@ Discord Bot
  - Voice Recognition & Voice Commands
  - Text-To-Speech
  - Custom UI
+ - Button interaction
 
 
  - Voice Control:
