@@ -17,3 +17,4 @@ Discord Bot
     - Move Users to Specified Voice Channels
     - Random Number Generator
     - Random Fact Generator
+    - Get Date/Time
