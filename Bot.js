@@ -261,6 +261,7 @@ let currentGuild;
 let currentDuration;
 let isError = false;
 let isReply = false;
+let isDisconnect = false;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -787,13 +788,7 @@ async function playCommand(arguments, receivedMessage) {
 
                     try {
                         if(!voiceConnection) {
-                            const connection = joinVoiceChannel({
-                                channelId: receivedMessage.member.voice.channel.id,
-                                guildId: receivedMessage.guild.id,
-                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                                selfMute: false,
-                                selfDeaf: false
-                            })
+                            receivedMessage.channel.send("You must be in a voice channel to use this feature");
                         } else {
                             voiceConnection.subscribe(player);
                             queue_constructor.connection = voiceConnection;
@@ -823,13 +818,7 @@ async function playCommand(arguments, receivedMessage) {
 
                     try {
                         if(!voiceConnection) {
-                            const connection = joinVoiceChannel({
-                                channelId: receivedMessage.member.voice.channel.id,
-                                guildId: receivedMessage.guild.id,
-                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                                selfMute: false,
-                                selfDeaf: false
-                            })
+                            receivedMessage.channel.send("You must be in a voice channel to use this feature");
                         } else {
                             voiceConnection.subscribe(player);
                             queue_constructor.connection = voiceConnection;
@@ -1061,6 +1050,7 @@ client.on('interactionCreate', async (interaction) => {
 	    if (interaction.isButton()) {
             globalInteraction = interaction;
             if (interaction.customId === 'join') {
+                isDisconnect = false;
                 if (interaction.member.voice.channel){
                     await interaction.deferUpdate();
                     await wait(100);
@@ -1086,6 +1076,7 @@ client.on('interactionCreate', async (interaction) => {
                 await wait(100);
                 await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
                 msgStatus = "standby";
+                isDisconnect = true;
                 leaveCommand("", interaction);
             }
         } else if (interaction.isCommand()) {
@@ -1121,5 +1112,32 @@ client.on('interactionCreate', async (interaction) => {
         } else {return;}
     } catch (e) {console.log(e);}
 });
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+
+    // if nobody left the channel in question, return.
+    if (oldState.channelID !==  oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
+      return;
+    // otherwise, check how many people are in the channel now
+    if (!oldState.channel.members.size - 1) {
+        try{
+            setTimeout(() => { // if 1 (you), wait five minutes
+                if (!oldState.channel.members.size - 1){
+                    mainMsgOnLeave(oldState);
+                }
+            }, 1000); // (1 sec in ms)
+        } catch (err){
+            throw err;
+        }
+    }
+});
+async function mainMsgOnLeave(oldState) {
+    msgStatus = "standby";
+    btnContent = standbyContent
+    btnComponent = [activityButtonStandby, standbyButton]
+    await mainMsg.delete();
+    mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+    leaveCommand("", oldState);
+}
 
 client.login(secret);
