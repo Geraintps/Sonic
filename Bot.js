@@ -718,7 +718,7 @@ function roll(args, msg) {
 async function tts(message, msg) {
     try {
         if (isPlaying) {
-            currentDuration = player.state.playbackDuration;
+            //currentDuration = player.state.playbackDuration;
             player.pause();
         }
         let trimmedMsg = message.replace(/Sonic say/g, '');
@@ -922,8 +922,11 @@ const video_player = async (guild, song, receivedMessage, resume) => {
     isPlaying = true;
     currentSong = song;
     player.play(stream, {volume: 0.1});
-    await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
-    
+    try {
+        await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
+    } catch (e){
+        console.log(e);
+    }
     player.on(AudioPlayerStatus.Idle, () => {
         if (!server_queue || server_queue.songs.length === 0) {
             isPlaying = false;
@@ -1132,11 +1135,15 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
 });
 async function mainMsgOnLeave(oldState) {
-    msgStatus = "standby";
-    btnContent = standbyContent
-    btnComponent = [activityButtonStandby, standbyButton]
-    await mainMsg.delete();
-    mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+    try{
+        msgStatus = "standby";
+        btnContent = standbyContent
+        btnComponent = [activityButtonStandby, standbyButton]
+        await mainMsg.delete();
+        mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+    } catch (e) {
+        console.log(e);
+    }
     leaveCommand("", oldState);
 }
 
