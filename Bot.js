@@ -880,7 +880,7 @@ async function leaveCommand(arguments, receivedMessage) {
                 subscription2.unsubscribe(audioPlayer);
             } 
             if(subscription3) {
-                subscription2.unsubscribe(player);
+                subscription3.unsubscribe(player);
             }
             server_queue = "";
             queue.delete(receivedMessage.guild.id)
