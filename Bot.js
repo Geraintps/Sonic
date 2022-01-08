@@ -873,25 +873,14 @@ function skipCommand(arguments, receivedMessage) {
 async function leaveCommand(arguments, receivedMessage) {
     if(voiceConnection) {
         try {
-            if (subscription && subscription2 && subscription3) {
+            if(subscription) {
                 subscription.unsubscribe(player);
+            } 
+            if(subscription2) {
                 subscription2.unsubscribe(audioPlayer);
-                subscription3.unsubscribe(player);
-            } else if (subscription && subscription2) {
-                subscription.unsubscribe(player);
-                subscription2.unsubscribe(audioPlayer);
-            } else if (subscription && subscription3) {
-                subscription.unsubscribe(player);
-                subscription3.unsubscribe(player);
-            } else if (subscription2 && subscription3) {
-                subscription2.unsubscribe(audioPlayer);
-                subscription3.unsubscribe(player);
-            } else if(subscription){
-                subscription.unsubscribe(player);
-            } else if (subscription2) {
-                subscription2.unsubscribe(audioPlayer);
-            } else if (subscription3) {
-                subscription3.unsubscribe(player);
+            } 
+            if(subscription3) {
+                subscription2.unsubscribe(player);
             }
             server_queue = "";
             queue.delete(receivedMessage.guild.id)
@@ -1122,10 +1111,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (oldState.channelID !==  oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
       return;
     // otherwise, check how many people are in the channel now
-    if (!oldState.channel.members.size - 1) {
+    if (oldState.channel.members.size == 1) {
         try{
             setTimeout(() => { // if 1 (you), wait five minutes
-                if (!oldState.channel.members.size - 1){
+                if (oldState.channel.members.size == 1){
                     mainMsgOnLeave(oldState);
                 }
             }, 1000); // (1 sec in ms)
