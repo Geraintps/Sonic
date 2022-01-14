@@ -9,6 +9,8 @@ Discord Bot
  - Voice Recognition & Voice Commands
  - Text-To-Speech
  - Custom UI
+ - Button interaction
+ - Discord Together
 
 
  - Voice Control:
@@ -17,3 +19,4 @@ Discord Bot
     - Move Users to Specified Voice Channels
     - Random Number Generator
     - Random Fact Generator
+    - Get Date/Time

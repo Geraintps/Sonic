@@ -261,6 +261,7 @@ let currentGuild;
 let currentDuration;
 let isError = false;
 let isReply = false;
+let isDisconnect = false;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -717,7 +718,7 @@ function roll(args, msg) {
 async function tts(message, msg) {
     try {
         if (isPlaying) {
-            currentDuration = player.state.playbackDuration;
+            //currentDuration = player.state.playbackDuration;
             player.pause();
         }
         let trimmedMsg = message.replace(/Sonic say/g, '');
@@ -787,13 +788,7 @@ async function playCommand(arguments, receivedMessage) {
 
                     try {
                         if(!voiceConnection) {
-                            const connection = joinVoiceChannel({
-                                channelId: receivedMessage.member.voice.channel.id,
-                                guildId: receivedMessage.guild.id,
-                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                                selfMute: false,
-                                selfDeaf: false
-                            })
+                            receivedMessage.channel.send("You must be in a voice channel to use this feature");
                         } else {
                             voiceConnection.subscribe(player);
                             queue_constructor.connection = voiceConnection;
@@ -823,13 +818,7 @@ async function playCommand(arguments, receivedMessage) {
 
                     try {
                         if(!voiceConnection) {
-                            const connection = joinVoiceChannel({
-                                channelId: receivedMessage.member.voice.channel.id,
-                                guildId: receivedMessage.guild.id,
-                                adapterCreator: receivedMessage.guild.voiceAdapterCreator,
-                                selfMute: false,
-                                selfDeaf: false
-                            })
+                            receivedMessage.channel.send("You must be in a voice channel to use this feature");
                         } else {
                             voiceConnection.subscribe(player);
                             queue_constructor.connection = voiceConnection;
@@ -884,24 +873,13 @@ function skipCommand(arguments, receivedMessage) {
 async function leaveCommand(arguments, receivedMessage) {
     if(voiceConnection) {
         try {
-            if (subscription && subscription2 && subscription3) {
+            if(subscription) {
                 subscription.unsubscribe(player);
+            } 
+            if(subscription2) {
                 subscription2.unsubscribe(audioPlayer);
-                subscription3.unsubscribe(player);
-            } else if (subscription && subscription2) {
-                subscription.unsubscribe(player);
-                subscription2.unsubscribe(audioPlayer);
-            } else if (subscription && subscription3) {
-                subscription.unsubscribe(player);
-                subscription3.unsubscribe(player);
-            } else if (subscription2 && subscription3) {
-                subscription2.unsubscribe(audioPlayer);
-                subscription3.unsubscribe(player);
-            } else if(subscription){
-                subscription.unsubscribe(player);
-            } else if (subscription2) {
-                subscription2.unsubscribe(audioPlayer);
-            } else if (subscription3) {
+            } 
+            if(subscription3) {
                 subscription3.unsubscribe(player);
             }
             server_queue = "";
@@ -933,8 +911,11 @@ const video_player = async (guild, song, receivedMessage, resume) => {
     isPlaying = true;
     currentSong = song;
     player.play(stream, {volume: 0.1});
-    await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
-    
+    try {
+        await client.channels.cache.get(botCommands).send(`‎\n█▄░█ █▀█ █░█░█   █▀█ █░░ ▄▀█ █▄█ █ █▄░█ █▀▀\n█░▀█ █▄█ ▀▄▀▄▀   █▀▀ █▄▄ █▀█ ░█░ █ █░▀█ █▄█\n**_${song.title}_** ${wApo}〈${song.duration.timestamp}〉${wApo}`)
+    } catch (e){
+        console.log(e);
+    }
     player.on(AudioPlayerStatus.Idle, () => {
         if (!server_queue || server_queue.songs.length === 0) {
             isPlaying = false;
@@ -1061,6 +1042,7 @@ client.on('interactionCreate', async (interaction) => {
 	    if (interaction.isButton()) {
             globalInteraction = interaction;
             if (interaction.customId === 'join') {
+                isDisconnect = false;
                 if (interaction.member.voice.channel){
                     await interaction.deferUpdate();
                     await wait(100);
@@ -1086,6 +1068,7 @@ client.on('interactionCreate', async (interaction) => {
                 await wait(100);
                 await interaction.editReply({ content: standbyContent, components: [activityButtonStandby, standbyButton] });
                 msgStatus = "standby";
+                isDisconnect = true;
                 leaveCommand("", interaction);
             }
         } else if (interaction.isCommand()) {
@@ -1121,5 +1104,36 @@ client.on('interactionCreate', async (interaction) => {
         } else {return;}
     } catch (e) {console.log(e);}
 });
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+
+    // if nobody left the channel in question, return.
+    if (oldState.channelID !==  oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
+      return;
+    // otherwise, check how many people are in the channel now
+    if (oldState.channel.members.size == 1) {
+        try{
+            setTimeout(() => { // if 1 (you), wait five minutes
+                if (oldState.channel.members.size == 1){
+                    mainMsgOnLeave(oldState);
+                }
+            }, 1000); // (1 sec in ms)
+        } catch (err){
+            throw err;
+        }
+    }
+});
+async function mainMsgOnLeave(oldState) {
+    try{
+        msgStatus = "standby";
+        btnContent = standbyContent
+        btnComponent = [activityButtonStandby, standbyButton]
+        await mainMsg.delete();
+        mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+    } catch (e) {
+        console.log(e);
+    }
+    leaveCommand("", oldState);
+}
 
 client.login(secret);
