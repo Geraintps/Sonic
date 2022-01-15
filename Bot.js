@@ -1114,9 +1114,11 @@ async function addquote(msg, user, quote) {
             await msg.reply("No quotes for the user: " + user);
         }
         if (username) {
-            quotes[username].push(quote);
-            updateQuotes();
-            await msg.reply("Added quote from " + user + ": *" + quote + "*");
+            try {
+                quotes[username].push(quote);
+                updateQuotes();
+                await msg.reply("Added quote from " + user + ": *" + quote + "*");
+            }catch (e){console.log(e)}
         } else {return;}
     } else {
         user = user.toLowerCase();
@@ -1161,7 +1163,7 @@ async function sendquote(msg, user) {
             try{
                 var randomItem = Math.floor(Math.random() * quotes[username].length);
                 await msg.reply(username + ": *" + quotes[username][randomItem] + "*");
-            } catch { await msg.reply("An error occured") }
+            } catch { console.log("An error occured") }
         } else {
             await msg.reply("No quotes for the user: " + user);
         }
@@ -1173,7 +1175,7 @@ async function sendquote(msg, user) {
             try{
                 var randomItem = Math.floor(Math.random() * quotes[user].length);
                 await msg.reply(user + ": *" + quotes[user][randomItem] + "*");
-            } catch { await msg.reply("No quotes for the user: " + user) }
+            } catch { console.log("No quotes for the user: ") }
         } else {
             await msg.reply("No quotes for the user: " + user);
         }
@@ -1181,15 +1183,17 @@ async function sendquote(msg, user) {
 }
 
 function updateQuotes() {
-    var today = new Date();
-    var time = today.getHours() + ":" + today.getMinutes();
-    const stringData = JSON.stringify(quotes);
-    fs.writeFile('quotes.json', stringData, (err) => {
+    try{
+        var today = new Date();
+        var time = today.getHours() + ":" + today.getMinutes();
+        const stringData = JSON.stringify(quotes);
+        fs.writeFile('quotes.json', stringData, (err) => {
         if (err) {
             throw err;
         }
         console.log(time + " : Updated quotes");
     });
+    }catch(e) {console.log(e)}
 }
 
 client.on('interactionCreate', async (interaction) => {
