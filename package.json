@@ -10,6 +10,8 @@
     "discord.js": "^13.2.0",
     "discord.js-v12": "^2.5.0",
     "libsodium-wrappers": "^0.7.9",
+    "openai-api": "^1.2.6",
+    "play-dl": "^1.7.8",
     "wikipedia": "^1.1.6",
     "yt-search": "^2.10.1",
     "ytdl-core": "^4.9.1"

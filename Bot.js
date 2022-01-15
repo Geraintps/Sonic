@@ -15,7 +15,10 @@ const fs = require('fs');
 const { DiscordTogether } = require('discord-together');
 const secret = require('./clientSecret.json');
 const talkedRecently = new Set();
-
+const OpenAI = require('openai-api');
+const OPENAI_API_KEY = require('./openai.json');
+const openai = new OpenAI(OPENAI_API_KEY);
+const quotesObj = require('./quotes.json')
 
 const client = new Client({
     intents: [
@@ -262,6 +265,8 @@ let currentDuration;
 let isError = false;
 let isReply = false;
 let isDisconnect = false;
+let isConversation = false;
+let quotes = quotesObj;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -545,70 +550,84 @@ client.on("speech", (msg) => {
     } else {
         currentGuild = msg.guild;
         console.log(msg.content);
-        if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
-            if (msg.content.includes("play")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                playCommand(args, msg);
-            } else if (msg.content.includes("pause")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                pauseCommand(args, msg);
-            } else if (msg.content.includes("stop") || msg.content.includes("Stop")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                stopCommand(args, msg);
-            } else if (msg.content.includes("resume")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                resumeCommand(args, msg);
-            } else if (msg.content.includes("skip") || msg.content.includes("skit")) {
-                let args = msg.content.replace(/Sonic play/g,'');
-                skipCommand(args, msg);
-            } else if (msg.content.includes("youtube") || msg.content.includes("Youtube")) {
-                togetherStart(msg);
-            } else if (msg.content.includes("poker") || msg.content.includes("Poker")) {
-                togetherStart(msg);
-            } else if (msg.content.includes("chess") || msg.content.includes("Chess")) {
-                togetherStart(msg);
-            } else if (msg.content.includes("fact")) {
-                var randomItem = randomFacts[Math.floor(Math.random() * randomFacts.length)];
-                textChannel.send(`‎\n${wApo} 𝙁𝙖𝙘𝙩: ${randomItem} ${wApo}`)
-                tts(randomItem, msg);
-            } else if (msg.content.includes("help")) {
-                textChannel.send("**Welcome to Voided.exe**\nWhat would you like help with?\n`;help roles` `;help fact` `;help suggestion` `;help roll` `;help serverinfo`");
-            } else if (msg.content.includes("roll")) {
-                let number = msg.content.match(/\d+/g);
-                roll(number, msg);            
-            } else if (msg.content.includes("say") || msg.content.includes("said")) {
-                tts(msg.content, msg);
-            } else if (msg.content.includes("time") || msg.content.includes("Time")) {
-                getTime(msg);
-            } else if (msg.content.includes("date") || msg.content.includes("Date")) {
-                getDate(msg);
-            } else if (msg.content.includes("move") || msg.content.includes("Move") || msg.content.includes("movie") || msg.content.includes("Movie")) {
-                moveTo(msg);
-            } else if (msg.content.includes("tell me about")) {
-                wikipedia(msg);
-            } else if (msg.content.includes("hi") || msg.content.includes("hey") || msg.content.includes("hello") || msg.content.includes("Hi") || msg.content.includes("Hey") || msg.content.includes("Hello")) {
-                if(msg.author=="354380508257452042") {
-                    user = "Gez";
-                } else if(msg.author=="322412820287193098") {
-                    user = "Joe";
-                } else if(msg.author=="391652823798120460") {
-                    user = "Toby";
-                } else if(msg.author=="130122865998561281") {
-                    user = "Jack";
-                } else if(msg.author=="192688164844994560") {
-                    user = "Morgan";
-                } else if(msg.author=="288403474067095554") {
-                    user = "Lewis";
-                } else if(msg.author=="407179353999409153") {
-                    user = "Kiwi";
-                } else {
-                    user = "dude";
+        if(!isConversation){
+            if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
+                if (msg.content.includes("conversation")) {
+                    isConversation = true;
+                    return;
                 }
-                let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
-                let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
-                tts(randomMsg, msg);
-            } 
-        } else {return;}
+                if (msg.content.includes("play")) {
+                    let args = msg.content.replace(/Sonic play/g,'');
+                    playCommand(args, msg);
+                } else if (msg.content.includes("pause")) {
+                    let args = msg.content.replace(/Sonic play/g,'');
+                    pauseCommand(args, msg);
+                } else if (msg.content.includes("stop") || msg.content.includes("Stop")) {
+                    let args = msg.content.replace(/Sonic play/g,'');
+                    stopCommand(args, msg);
+                } else if (msg.content.includes("resume")) {
+                    let args = msg.content.replace(/Sonic play/g,'');
+                    resumeCommand(args, msg);
+                } else if (msg.content.includes("skip") || msg.content.includes("skit")) {
+                    let args = msg.content.replace(/Sonic play/g,'');
+                    skipCommand(args, msg);
+                } else if (msg.content.includes("youtube") || msg.content.includes("Youtube")) {
+                    togetherStart(msg);
+                } else if (msg.content.includes("poker") || msg.content.includes("Poker")) {
+                    togetherStart(msg);
+                } else if (msg.content.includes("chess") || msg.content.includes("Chess")) {
+                    togetherStart(msg);
+                } else if (msg.content.includes("fact")) {
+                    var randomItem = randomFacts[Math.floor(Math.random() * randomFacts.length)];
+                    textChannel.send(`‎\n${wApo} 𝙁𝙖𝙘𝙩: ${randomItem} ${wApo}`)
+                    tts(randomItem, msg);
+                } else if (msg.content.includes("help")) {
+                    textChannel.send("**Welcome to Voided.exe**\nWhat would you like help with?\n`;help roles` `;help fact` `;help suggestion` `;help roll` `;help serverinfo`");
+                } else if (msg.content.includes("roll")) {
+                    let number = msg.content.match(/\d+/g);
+                    roll(number, msg);            
+                } else if (msg.content.includes("say") || msg.content.includes("said")) {
+                    tts(msg.content, msg);
+                } else if (msg.content.includes("time") || msg.content.includes("Time")) {
+                    getTime(msg);
+                } else if (msg.content.includes("date") || msg.content.includes("Date")) {
+                    getDate(msg);
+                } else if (msg.content.includes("move") || msg.content.includes("Move") || msg.content.includes("movie") || msg.content.includes("Movie")) {
+                    moveTo(msg);
+                } else if (msg.content.includes("tell me about")) {
+                    wikipedia(msg);
+                } else if (msg.content.includes("hi") || msg.content.includes("hey") || msg.content.includes("hello") || msg.content.includes("Hi") || msg.content.includes("Hey") || msg.content.includes("Hello")) {
+                    if(msg.author=="354380508257452042") {
+                        user = "Gez";
+                    } else if(msg.author=="322412820287193098") {
+                        user = "Joe";
+                    } else if(msg.author=="391652823798120460") {
+                        user = "Toby";
+                    } else if(msg.author=="130122865998561281") {
+                        user = "Jack";
+                    } else if(msg.author=="192688164844994560") {
+                        user = "Morgan";
+                    } else if(msg.author=="288403474067095554") {
+                        user = "Lewis";
+                    } else if(msg.author=="407179353999409153") {
+                        user = "Kiwi";
+                    } else {
+                        user = "dude";
+                    }
+                    let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
+                    let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
+                    tts(randomMsg, msg);
+                } 
+            } else {return;}
+        } else {
+            if(msg.content.includes("end conversation")) {
+                isConversation = false;
+                return;
+            }
+            let message = msg.content;
+            aiResponse(message, msg);
+            //console.log(newMsg)
+        } 
     }
 });
 
@@ -713,10 +732,40 @@ function roll(args, msg) {
         (console.log("Error rolling number"));
     }
 }
-
+let promptHistory = "";
+async function aiResponse(message, msg) {
+    (async () => {
+        const gptResponse = await openai.complete({
+            engine: 'davinci',
+            prompt: "Human: " + message +"?\nAI:",
+            maxTokens: 20,
+            temperature: 0.5,
+            topP: 1,
+            presencePenalty: 0,
+            frequencyPenalty: 0,
+            bestOf: 1,
+            n: 1,
+            stream: false,
+            stop: ['\n', " Human:", " AI:"]
+        });
+        let response = gptResponse.data.choices[0].text;
+        //console.log(gptResponse.data);
+        //console.log(response);
+        if(response.includes("Q:")){
+            response = response.replace(/Q:/g,'. ');
+        }
+        if(response.includes("A:")) {
+            response = response.replace(/A:/g,'. ');
+        }
+        promptHistory = "Human: " + message + "?\nAI: " + response;
+        console.log(promptHistory);
+        tts(response);
+    })();
+}
 
 async function tts(message, msg) {
     try {
+        
         if (isPlaying) {
             //currentDuration = player.state.playbackDuration;
             player.pause();
@@ -733,9 +782,11 @@ async function tts(message, msg) {
         }
         audioPlayer.on(AudioPlayerStatus.Idle, () => {
             subscription2.unsubscribe(audioPlayer);
-            subscription = voiceConnection.subscribe(player);
-            let resume = true;
-            player.unpause();
+            if(isPlaying){
+                subscription = voiceConnection.subscribe(player);
+                let resume = true;
+                player.unpause();
+            }
         });
     } catch (e) {
         //(console.log("Error with tts"));
@@ -907,7 +958,7 @@ const video_player = async (guild, song, receivedMessage, resume) => {
         queue.delete(guild.id);
         return;
     }
-    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', volume: 0.1 }));
+    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', quality: 'lowestaudio', volume: 0.1 }));
     isPlaying = true;
     currentSong = song;
     player.play(stream, {volume: 0.1});
@@ -1037,6 +1088,110 @@ async function buttonJoin (interaction) {
     } catch {console.log("Error joining voice channel");}
 }
 
+async function addquote(msg, user, quote) {
+    console.log(user);
+    console.log(quote);
+    let username;
+
+    if (user.includes('<@!')) {
+        let user1 = user.replace(/<@!/g,'');
+        let theUser = user1.replace(/>/g,'');
+        if(theUser=="354380508257452042") {
+            username = "Gez";
+        } else if(theUser=="322412820287193098") {
+            username = "Joe";
+        } else if(theUser=="391652823798120460") {
+            username = "Toby";
+        } else if(theUser=="130122865998561281") {
+            username = "Jack";
+        } else if(theUser=="192688164844994560") {
+            username = "Morgan";
+        } else if(theUser=="288403474067095554") {
+            username = "Lewis";
+        } else if(theUser=="407179353999409153") {
+            username = "Kiwi";
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+        if (username) {
+            quotes[username].push(quote);
+            updateQuotes();
+            await msg.reply("Added quote from " + user + ": *" + quote + "*");
+        } else {return;}
+    } else {
+        user = user.toLowerCase();
+        user = user.charAt(0).toUpperCase() + user.slice(1);
+        if(user) {
+            try{
+                quotes[user].push(quote);
+                updateQuotes();
+                await msg.reply("Added quote from " + user + ": *" + quote + "*");
+            } catch { await msg.reply("No quotes for the user: " + user) }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+}
+
+
+async function sendquote(msg, user) {
+    let username;
+    //console.log(quotes);
+    if (user.includes('<@!')) {
+        let user1 = user.replace(/<@!/g,'');
+        let theUser = user1.replace(/>/g,'');
+        if(theUser=="354380508257452042") {
+            username = "Gez";
+        } else if(theUser=="322412820287193098") {
+            username = "Joe";
+        } else if(theUser=="391652823798120460") {
+            username = "Toby";
+        } else if(theUser=="130122865998561281") {
+            username = "Jack";
+        } else if(theUser=="192688164844994560") {
+            username = "Morgan";
+        } else if(theUser=="288403474067095554") {
+            username = "Lewis";
+        } else if(theUser=="407179353999409153") {
+            username = "Kiwi";
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+        if(username) {
+            try{
+                var randomItem = Math.floor(Math.random() * quotes[username].length);
+                await msg.reply(username + ": *" + quotes[username][randomItem] + "*");
+            } catch { await msg.reply("An error occured") }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+    else {
+        user = user.toLowerCase();
+        user = user.charAt(0).toUpperCase() + user.slice(1);
+        if(user) {
+            try{
+                var randomItem = Math.floor(Math.random() * quotes[user].length);
+                await msg.reply(user + ": *" + quotes[user][randomItem] + "*");
+            } catch { await msg.reply("No quotes for the user: " + user) }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+}
+
+function updateQuotes() {
+    var today = new Date();
+    var time = today.getHours() + ":" + today.getMinutes();
+    const stringData = JSON.stringify(quotes);
+    fs.writeFile('quotes.json', stringData, (err) => {
+        if (err) {
+            throw err;
+        }
+        console.log(time + " : Updated quotes");
+    });
+}
+
 client.on('interactionCreate', async (interaction) => {
     try{
 	    if (interaction.isButton()) {
@@ -1100,6 +1255,13 @@ client.on('interactionCreate', async (interaction) => {
             } else if (commandName === 'keep') {
                 let args = interaction.options.getString('message');
                 await interaction.reply(args);
+            } else if (commandName === 'addquote') {
+                let user = interaction.options.getString('username');
+                let quote = interaction.options.getString('quote');
+                addquote(interaction, user, quote);
+            } else if (commandName === 'quote') {
+                let user = interaction.options.getString('user');
+                sendquote(interaction, user);
             }
         } else {return;}
     } catch (e) {console.log(e);}

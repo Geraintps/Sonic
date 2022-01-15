@@ -19,6 +19,14 @@ const commands = [
 	new SlashCommandBuilder().setName('skip').setDescription('Skips current track'),
 	new SlashCommandBuilder().setName('pause').setDescription('Pauses music playback'),
 	new SlashCommandBuilder().setName('resume').setDescription('Resumes music playback'),
+	new SlashCommandBuilder().setName('addquote').setDescription('Adds a quote to a given user').addStringOption(option => 
+		option.setName('username').setDescription('Username of whoever said the quote').setRequired(true)
+	).addStringOption(option => 
+		option.setName('quote').setDescription('The Quote').setRequired(true)
+	),
+	new SlashCommandBuilder().setName('quote').setDescription('Sends a random quote from a given user').addStringOption(option => 
+		option.setName('user').setDescription('Sends a random quote from a given user').setRequired(true)
+	),
 	new SlashCommandBuilder().setName('keep').setDescription('Retains the message').addStringOption(option => 
 		option.setName('message')
 		.setDescription("Retains the message")
