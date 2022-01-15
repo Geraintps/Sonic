@@ -18,6 +18,7 @@ const talkedRecently = new Set();
 const OpenAI = require('openai-api');
 const OPENAI_API_KEY = require('./openai.json');
 const openai = new OpenAI(OPENAI_API_KEY);
+const quotesObj = require('./quotes.json')
 
 const client = new Client({
     intents: [
@@ -265,6 +266,7 @@ let isError = false;
 let isReply = false;
 let isDisconnect = false;
 let isConversation = false;
+let quotes = quotesObj;
 
 const joinContent = '‎\n‎\n██████████████████████████████████████████████████████████████████████▀█\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███▄─▄─▀█─▄▄─█─▄▄─█─▄─▄─█▄─▄█▄─▀█▄─▄█─▄▄▄▄█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀████─▄─▀█─██─█─██─███─████─███─█▄▀─██─██▄─█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▀▄▄▄▄▀▄▄▄▄▀▀▄▄▄▀▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
 const joinedContent = '‎\n‎\n█████████████████████████████████████████████████████████████████████\n█─▄▄▄▄█─▄▄─█▄─▀█▄─▄█▄─▄█─▄▄▄─███─▄▄─█▄─▀█▄─▄█▄─▄███▄─▄█▄─▀█▄─▄█▄─▄▄─█\n█▄▄▄▄─█─██─██─█▄▀─███─██─███▀███─██─██─█▄▀─███─██▀██─███─█▄▀─███─▄█▀█\n▀▄▄▄▄▄▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▀▄▄▄▄▄▀▀▀▄▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀▄▄▄▀▄▄▄▀▀▄▄▀▄▄▄▄▄▀';
@@ -1086,6 +1088,110 @@ async function buttonJoin (interaction) {
     } catch {console.log("Error joining voice channel");}
 }
 
+async function addquote(msg, user, quote) {
+    console.log(user);
+    console.log(quote);
+    let username;
+
+    if (user.includes('<@!')) {
+        let user1 = user.replace(/<@!/g,'');
+        let theUser = user1.replace(/>/g,'');
+        if(theUser=="354380508257452042") {
+            username = "Gez";
+        } else if(theUser=="322412820287193098") {
+            username = "Joe";
+        } else if(theUser=="391652823798120460") {
+            username = "Toby";
+        } else if(theUser=="130122865998561281") {
+            username = "Jack";
+        } else if(theUser=="192688164844994560") {
+            username = "Morgan";
+        } else if(theUser=="288403474067095554") {
+            username = "Lewis";
+        } else if(theUser=="407179353999409153") {
+            username = "Kiwi";
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+        if (username) {
+            quotes[username].push(quote);
+            updateQuotes();
+            await msg.reply("Added quote from " + user + ": *" + quote + "*");
+        } else {return;}
+    } else {
+        user = user.toLowerCase();
+        user = user.charAt(0).toUpperCase() + user.slice(1);
+        if(user) {
+            try{
+                quotes[user].push(quote);
+                updateQuotes();
+                await msg.reply("Added quote from " + user + ": *" + quote + "*");
+            } catch { await msg.reply("No quotes for the user: " + user) }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+}
+
+
+async function sendquote(msg, user) {
+    let username;
+    //console.log(quotes);
+    if (user.includes('<@!')) {
+        let user1 = user.replace(/<@!/g,'');
+        let theUser = user1.replace(/>/g,'');
+        if(theUser=="354380508257452042") {
+            username = "Gez";
+        } else if(theUser=="322412820287193098") {
+            username = "Joe";
+        } else if(theUser=="391652823798120460") {
+            username = "Toby";
+        } else if(theUser=="130122865998561281") {
+            username = "Jack";
+        } else if(theUser=="192688164844994560") {
+            username = "Morgan";
+        } else if(theUser=="288403474067095554") {
+            username = "Lewis";
+        } else if(theUser=="407179353999409153") {
+            username = "Kiwi";
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+        if(username) {
+            try{
+                var randomItem = Math.floor(Math.random() * quotes[username].length);
+                await msg.reply(username + ": *" + quotes[username][randomItem] + "*");
+            } catch { await msg.reply("An error occured") }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+    else {
+        user = user.toLowerCase();
+        user = user.charAt(0).toUpperCase() + user.slice(1);
+        if(user) {
+            try{
+                var randomItem = Math.floor(Math.random() * quotes[user].length);
+                await msg.reply(user + ": *" + quotes[user][randomItem] + "*");
+            } catch { await msg.reply("No quotes for the user: " + user) }
+        } else {
+            await msg.reply("No quotes for the user: " + user);
+        }
+    }
+}
+
+function updateQuotes() {
+    var today = new Date();
+    var time = today.getHours() + ":" + today.getMinutes();
+    const stringData = JSON.stringify(quotes);
+    fs.writeFile('quotes.json', stringData, (err) => {
+        if (err) {
+            throw err;
+        }
+        console.log(time + " : Updated quotes");
+    });
+}
+
 client.on('interactionCreate', async (interaction) => {
     try{
 	    if (interaction.isButton()) {
@@ -1149,6 +1255,13 @@ client.on('interactionCreate', async (interaction) => {
             } else if (commandName === 'keep') {
                 let args = interaction.options.getString('message');
                 await interaction.reply(args);
+            } else if (commandName === 'addquote') {
+                let user = interaction.options.getString('username');
+                let quote = interaction.options.getString('quote');
+                addquote(interaction, user, quote);
+            } else if (commandName === 'quote') {
+                let user = interaction.options.getString('user');
+                sendquote(interaction, user);
             }
         } else {return;}
     } catch (e) {console.log(e);}
