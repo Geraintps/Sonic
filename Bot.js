@@ -15,9 +15,9 @@ const fs = require('fs');
 const { DiscordTogether } = require('discord-together');
 const secret = require('./clientSecret.json');
 const talkedRecently = new Set();
-const OpenAI = require('openai-api');
-const OPENAI_API_KEY = require('./openai.json');
-const openai = new OpenAI(OPENAI_API_KEY);
+//const OpenAI = require('openai-api');
+//const OPENAI_API_KEY = require('./openai.json');
+//const openai = new OpenAI(OPENAI_API_KEY);
 const quotesObj = require('./quotes.json')
 
 const client = new Client({
@@ -552,10 +552,10 @@ client.on("speech", (msg) => {
         console.log(msg.content);
         if(!isConversation){
             if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
-                if (msg.content.includes("conversation")) {
-                    isConversation = true;
-                    return;
-                }
+                // if (msg.content.includes("conversation")) {
+                //     isConversation = true;
+                //     return;
+                // }
                 if (msg.content.includes("play")) {
                     let args = msg.content.replace(/Sonic play/g,'');
                     playCommand(args, msg);
@@ -624,8 +624,8 @@ client.on("speech", (msg) => {
                 isConversation = false;
                 return;
             }
-            let message = msg.content;
-            aiResponse(message, msg);
+            // let message = msg.content;
+            // aiResponse(message, msg);
             //console.log(newMsg)
         } 
     }
@@ -958,7 +958,7 @@ const video_player = async (guild, song, receivedMessage, resume) => {
         queue.delete(guild.id);
         return;
     }
-    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', quality: 'lowestaudio', volume: 0.1 }));
+    const stream = createAudioResource(ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', volume: 0.1 }));
     isPlaying = true;
     currentSong = song;
     player.play(stream, {volume: 0.1});
