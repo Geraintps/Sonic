@@ -18,7 +18,8 @@ const talkedRecently = new Set();
 //const OpenAI = require('openai-api');
 //const OPENAI_API_KEY = require('./openai.json');
 //const openai = new OpenAI(OPENAI_API_KEY);
-const quotesObj = require('./quotes.json')
+const quotesObj = require('./quotes.json');
+const translate = require('@vitalets/google-translate-api');
 
 const client = new Client({
     intents: [
@@ -29,6 +30,7 @@ const client = new Client({
         Intents.FLAGS.GUILD_MEMBERS
     ],
 });
+
 
 client.discordTogether = new DiscordTogether(client);
 
@@ -241,7 +243,8 @@ function newButtons() {
         );
 }
 
-addSpeechEvent(client, {profanityFilter: false});
+addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB'});
+addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
 
 let wApo = '`';
 let textChannel;
@@ -544,12 +547,23 @@ async function sendButton(reply, args) {
     });
 }
 
+let pastSpeech;
+
 client.on("speech", (msg) => {
     if (!msg.content) {
         return;
     } else {
         currentGuild = msg.guild;
         console.log(msg.content);
+        if(msg.author == "354380508257452042" && !msg.content.includes("Sonic")) {
+            translate(msg.content, {to: 'en'}).then(res => {
+                if(res.from.language.iso == 'sv') {
+                    pastSpeech = res.text;
+                }
+            }).catch(err => {
+                console.error(err);
+            });
+        }
         if(!isConversation){
             if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
                 // if (msg.content.includes("conversation")) {
@@ -596,6 +610,8 @@ client.on("speech", (msg) => {
                     moveTo(msg);
                 } else if (msg.content.includes("tell me about")) {
                     wikipedia(msg);
+                } else if (msg.content.includes("translate") || msg.content.includes("Translate")) {
+                    tts(pastSpeech, msg);
                 } else if (msg.content.includes("hi") || msg.content.includes("hey") || msg.content.includes("hello") || msg.content.includes("Hi") || msg.content.includes("Hey") || msg.content.includes("Hello")) {
                     if(msg.author=="354380508257452042") {
                         user = "Gez";
@@ -630,6 +646,15 @@ client.on("speech", (msg) => {
         } 
     }
 });
+
+// async function translateMsg(msg, pastSpeech) {
+//     translate(pastSpeech, {from: 'sv', to: 'en'}).then(res => {
+//         console.log(res.text);
+//         tts(res.text);
+//     }).catch(err => {
+//         console.error(err);
+//     });
+// }
 
 async function wikipedia(msg) {
 	try {
@@ -762,7 +787,14 @@ async function aiResponse(message, msg) {
         tts(response);
     })();
 }
-
+audioPlayer.on(AudioPlayerStatus.Idle, () => {
+    subscription2.unsubscribe(audioPlayer);
+    if(isPlaying){
+        subscription = voiceConnection.subscribe(player);
+        let resume = true;
+        player.unpause();
+    }
+});
 async function tts(message, msg) {
     try {
         
@@ -780,20 +812,14 @@ async function tts(message, msg) {
             subscription2 = voiceConnection.subscribe(audioPlayer);
             audioPlayer.play(audioResource);
         }
-        audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            subscription2.unsubscribe(audioPlayer);
-            if(isPlaying){
-                subscription = voiceConnection.subscribe(player);
-                let resume = true;
-                player.unpause();
-            }
-        });
+        
     } catch (e) {
         //(console.log("Error with tts"));
         (console.error || console.log).call(console, e.stack || e);
     }
 
 }
+
 
 async function playCommand(arguments, receivedMessage) {
     try{
