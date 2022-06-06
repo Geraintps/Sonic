@@ -555,7 +555,8 @@ client.on("speech", (msg) => {
     } else {
         currentGuild = msg.guild;
         console.log(msg.content);
-        if(msg.author == "354380508257452042" && !msg.content.includes("Sonic")) {
+        let hasRole = msg.member.roles.cache.some(r => r.name === "Sweden");
+        if(hasRole && !msg.content.includes("Sonic")) {
             translate(msg.content, {to: 'en'}).then(res => {
                 if(res.from.language.iso == 'sv') {
                     pastSpeech = res.text;
