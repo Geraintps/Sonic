@@ -243,8 +243,8 @@ function newButtons() {
         );
 }
 
-addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB'});
-addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
+addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB', lang: 'sv'});
+//addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
 
 let wApo = '`';
 let textChannel;
@@ -571,8 +571,10 @@ client.on("speech", (msg) => {
                 //     isConversation = true;
                 //     return;
                 // }
-                if (msg.content.includes("play")) {
-                    let args = msg.content.replace(/Sonic play/g,'');
+                if (msg.content.includes("play") || msg.content.includes("Play")) {
+                    lowerCase = msg.content.toLowerCase();
+                    let args = lowerCase.replace(/sonic play/g,'');
+                    console.log(args);
                     playCommand(args, msg);
                 } else if (msg.content.includes("pause")) {
                     let args = msg.content.replace(/Sonic play/g,'');
@@ -634,7 +636,8 @@ client.on("speech", (msg) => {
                     let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
                     let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
                     tts(randomMsg, msg);
-                } 
+                }
+
             } else {return;}
         } else {
             if(msg.content.includes("end conversation")) {
