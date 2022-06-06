@@ -585,7 +585,7 @@ client.on("speech", (msg) => {
                 } else if (msg.content.includes("resume")) {
                     let args = msg.content.replace(/Sonic play/g,'');
                     resumeCommand(args, msg);
-                } else if (msg.content.includes("skip") || msg.content.includes("skit")) {
+                } else if (msg.content.includes("skip") || msg.content.includes("skit") || msg.content.includes("skate")) {
                     let args = msg.content.replace(/Sonic play/g,'');
                     skipCommand(args, msg);
                 } else if (msg.content.includes("youtube") || msg.content.includes("Youtube")) {
