@@ -243,8 +243,8 @@ function newButtons() {
         );
 }
 
-addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB', lang: 'sv'});
-//addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
+addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB'});
+addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
 
 let wApo = '`';
 let textChannel;
@@ -549,105 +549,125 @@ async function sendButton(reply, args) {
 
 let pastSpeech;
 
-client.on("speech", (msg) => {
+client.on("speech", async (msg) => {
     if (!msg.content) {
         return;
     } else {
-        currentGuild = msg.guild;
-        console.log(msg.content);
+        let isSwedish = false;
         let hasRole = msg.member.roles.cache.some(r => r.name === "Sweden");
         if(hasRole && !msg.content.includes("Sonic")) {
-            translate(msg.content, {to: 'en'}).then(res => {
+            await translate(msg.content, {to: 'en'}).then(res => {
                 if(res.from.language.iso == 'sv') {
+                    console.log(msg.content);
+                    console.log('Translation: ' + res.text);
                     pastSpeech = res.text;
+                    isSwedish = true;
+                } else {
+                    isSwedish = false;
                 }
             }).catch(err => {
                 console.error(err);
             });
         }
-        if(!isConversation){
-            if (msg.content.includes("sonic") || msg.content.includes("Sonic")) {
-                // if (msg.content.includes("conversation")) {
-                //     isConversation = true;
-                //     return;
-                // }
-                if (msg.content.includes("play") || msg.content.includes("Play")) {
-                    lowerCase = msg.content.toLowerCase();
-                    let args = lowerCase.replace(/sonic play/g,'');
-                    console.log(args);
-                    playCommand(args, msg);
-                } else if (msg.content.includes("pause")) {
-                    let args = msg.content.replace(/Sonic play/g,'');
-                    pauseCommand(args, msg);
-                } else if (msg.content.includes("stop") || msg.content.includes("Stop")) {
-                    let args = msg.content.replace(/Sonic play/g,'');
-                    stopCommand(args, msg);
-                } else if (msg.content.includes("resume")) {
-                    let args = msg.content.replace(/Sonic play/g,'');
-                    resumeCommand(args, msg);
-                } else if (msg.content.includes("skip") || msg.content.includes("skit") || msg.content.includes("skate")) {
-                    let args = msg.content.replace(/Sonic play/g,'');
-                    skipCommand(args, msg);
-                } else if (msg.content.includes("youtube") || msg.content.includes("Youtube")) {
-                    togetherStart(msg);
-                } else if (msg.content.includes("poker") || msg.content.includes("Poker")) {
-                    togetherStart(msg);
-                } else if (msg.content.includes("chess") || msg.content.includes("Chess")) {
-                    togetherStart(msg);
-                } else if (msg.content.includes("fact")) {
-                    var randomItem = randomFacts[Math.floor(Math.random() * randomFacts.length)];
-                    textChannel.send(`‎\n${wApo} 𝙁𝙖𝙘𝙩: ${randomItem} ${wApo}`)
-                    tts(randomItem, msg);
-                } else if (msg.content.includes("help")) {
-                    textChannel.send("**Welcome to Voided.exe**\nWhat would you like help with?\n`;help roles` `;help fact` `;help suggestion` `;help roll` `;help serverinfo`");
-                } else if (msg.content.includes("roll")) {
-                    let number = msg.content.match(/\d+/g);
-                    roll(number, msg);            
-                } else if (msg.content.includes("say") || msg.content.includes("said")) {
-                    tts(msg.content, msg);
-                } else if (msg.content.includes("time") || msg.content.includes("Time")) {
-                    getTime(msg);
-                } else if (msg.content.includes("date") || msg.content.includes("Date")) {
-                    getDate(msg);
-                } else if (msg.content.includes("move") || msg.content.includes("Move") || msg.content.includes("movie") || msg.content.includes("Movie")) {
-                    moveTo(msg);
-                } else if (msg.content.includes("tell me about")) {
-                    wikipedia(msg);
-                } else if (msg.content.includes("translate") || msg.content.includes("Translate")) {
-                    tts(pastSpeech, msg);
-                } else if (msg.content.includes("hi") || msg.content.includes("hey") || msg.content.includes("hello") || msg.content.includes("Hi") || msg.content.includes("Hey") || msg.content.includes("Hello")) {
-                    if(msg.author=="354380508257452042") {
-                        user = "Gez";
-                    } else if(msg.author=="322412820287193098") {
-                        user = "Joe";
-                    } else if(msg.author=="391652823798120460") {
-                        user = "Toby";
-                    } else if(msg.author=="130122865998561281") {
-                        user = "Jack";
-                    } else if(msg.author=="192688164844994560") {
-                        user = "Morgan";
-                    } else if(msg.author=="288403474067095554") {
-                        user = "Lewis";
-                    } else if(msg.author=="407179353999409153") {
-                        user = "Kiwi";
-                    } else {
-                        user = "dude";
-                    }
-                    let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
-                    let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
-                    tts(randomMsg, msg);
-                }
-
-            } else {return;}
+        if (talkedRecently.has(msg.author.id) || isSwedish == true) {
+            console.log();
         } else {
-            if(msg.content.includes("end conversation")) {
-                isConversation = false;
-                return;
-            }
-            // let message = msg.content;
-            // aiResponse(message, msg);
-            //console.log(newMsg)
-        } 
+            currentGuild = msg.guild;
+            console.log(msg.content);
+
+            if(!isConversation){
+                if (msg.content.includes("sonic") || msg.content.includes("Sonic") || msg.content.includes("onyx") || msg.content.includes("Onyx"))   {
+                    // if (msg.content.includes("conversation")) {
+                    //     isConversation = true;
+                    //     return;
+                    // }
+                    if (msg.content.includes("play") || msg.content.includes("Play")) {
+                        lowerCase = msg.content.toLowerCase();
+                        let args = lowerCase.replace(/sonic play/g,'');
+                        console.log(args);
+                        playCommand(args, msg);
+                    } else if (msg.content.includes("pause")) {
+                        let args = msg.content.replace(/Sonic play/g,'');
+                        pauseCommand(args, msg);
+                    } else if (msg.content.includes("stop") || msg.content.includes("Stop")) {
+                        let args = msg.content.replace(/Sonic play/g,'');
+                        stopCommand(args, msg);
+                    } else if (msg.content.includes("resume")) {
+                        let args = msg.content.replace(/Sonic play/g,'');
+                        resumeCommand(args, msg);
+                    } else if (msg.content.includes("skip") || msg.content.includes("skit") || msg.content.includes("skate")) {
+                        let args = msg.content.replace(/Sonic play/g,'');
+                        skipCommand(args, msg);
+                    } else if (msg.content.includes("youtube") || msg.content.includes("Youtube")) {
+                        togetherStart(msg);
+                    } else if (msg.content.includes("poker") || msg.content.includes("Poker")) {
+                        togetherStart(msg);
+                    } else if (msg.content.includes("chess") || msg.content.includes("Chess")) {
+                        togetherStart(msg);
+                    } else if (msg.content.includes("fact")) {
+                        var randomItem = randomFacts[Math.floor(Math.random() * randomFacts.length)];
+                        textChannel.send(`‎\n${wApo} 𝙁𝙖𝙘𝙩: ${randomItem} ${wApo}`)
+                        tts(randomItem, msg);
+                    } else if (msg.content.includes("help")) {
+                        textChannel.send("**Welcome to Voided.exe**\nWhat would you like help with?\n`;help roles` `;help fact` `;help suggestion` `;help roll` `;help serverinfo`");
+                    } else if (msg.content.includes("roll")) {
+                        let number = msg.content.match(/\d+/g);
+                        roll(number, msg);            
+                    } else if (msg.content.includes("say") || msg.content.includes("said")) {
+                        tts(msg.content, msg);
+                    } else if (msg.content.includes("time") || msg.content.includes("Time")) {
+                        getTime(msg);
+                    } else if (msg.content.includes("date") || msg.content.includes("Date")) {
+                        getDate(msg);
+                    } else if (msg.content.includes("move") || msg.content.includes("Move") || msg.content.includes("movie") || msg.content.includes("Movie")) {
+                        moveTo(msg);
+                    } else if (msg.content.includes("tell me about")) {
+                        wikipedia(msg);
+                    } else if (msg.content.includes("translate") || msg.content.includes("Translate")) {
+                        tts(pastSpeech, msg);
+                    } else if (msg.content.includes("hi") || msg.content.includes("hey") || msg.content.includes("hello") || msg.content.includes("Hi") || msg.content.includes("Hey") || msg.content.includes("Hello")) {
+                        if(msg.author=="354380508257452042") {
+                            user = "Gez";
+                        } else if(msg.author=="322412820287193098") {
+                            user = "Joe";
+                        } else if(msg.author=="391652823798120460") {
+                            user = "Toby";
+                        } else if(msg.author=="130122865998561281") {
+                            user = "Jack";
+                        } else if(msg.author=="192688164844994560") {
+                            user = "Morgan";
+                        } else if(msg.author=="288403474067095554") {
+                            user = "Lewis";
+                        } else if(msg.author=="407179353999409153") {
+                            user = "Kiwi";
+                        } else {
+                            user = "dude";
+                        }
+                        let helloMsgs = ["Hey there " + user, "Hi " + user + ", how's it going?", "What's up " + user, "Yo " + user + ", what's popping my g?", "Hello " + user + ", how're you?", "Howdy " + user + ", what's up?", "How's it going " + user + "?", "Good day " + user, "Yo " + user + ", enjoying the weather?"];
+                        let randomMsg = helloMsgs[Math.floor(Math.random() * helloMsgs.length)];
+                        tts(randomMsg, msg);
+                    }
+
+                } else {return;}
+            } else {
+                if(msg.content.includes("end conversation")) {
+                    isConversation = false;
+                    return;
+                }
+                // let message = msg.content;
+                // aiResponse(message, msg);
+                //console.log(newMsg)
+            } 
+        }
+        if (msg.author.id == client.user.id || isSwedish) {
+            return;
+        } else {
+            talkedRecently.add(msg.author.id);
+            setTimeout(() => {
+                // Removes the user from the set after a minute
+                talkedRecently.delete(msg.author.id);
+            }, 2000);
+        }
     }
 });
 
@@ -824,9 +844,12 @@ async function tts(message, msg) {
 
 }
 
-
+let guildID;
+let recentMessage;
 async function playCommand(arguments, receivedMessage) {
     try{
+        guildID = receivedMessage.guild.id;
+        recentMessage = receivedMessage;
         const voice_Channel = receivedMessage.member ?.voice.channel;
         if (voice_Channel){
             server_queue = queue.get(receivedMessage.guild.id);
@@ -997,40 +1020,47 @@ const video_player = async (guild, song, receivedMessage, resume) => {
     } catch (e){
         console.log(e);
     }
-    player.on(AudioPlayerStatus.Idle, () => {
+}
+player.on(AudioPlayerStatus.Idle, () => {
+    if(!joinSound) {
         if (!server_queue || server_queue.songs.length === 0) {
             isPlaying = false;
-            queue.delete(receivedMessage.guild.id);
+            queue.delete(guildID);
             server_queue = "";
+            subscription.unsubscribe(player);
             return;
         } else {
             server_queue.songs.shift();
             try{
-                player.play(getNextResource("", receivedMessage));
+                player.play(getNextResource("", recentMessage));
             } catch (e) {
                 (console.error || console.log).call(console, e.stack || e);
             }
         }
-    });
-    player.on(AudioPlayerStatus.Playing, () => {
-        if (isError) {
-            isError = false;
-        } else {
-            return;
-        }
-    });
-    player.on('error', error => {
-        if (!isError) {
-            console.error("Playback error");
-            client.channels.cache.get(botCommands).send("Sorry! I ran into an problem, please try again :)");
-            isError = true;
-            skipCommand("", receivedMessage);
-        } else {
-            return;
-        }
-    });
+    } else {
+        subscription3.unsubscribe(player);
+        subscription = voiceConnection.subscribe(player);
+        joinSound = false;
+    }
     
-}
+});
+player.on(AudioPlayerStatus.Playing, () => {
+    if (isError) {
+        isError = false;
+    } else {
+        return;
+    }
+});
+player.on('error', error => {
+    if (!isError) {
+        console.error("Playback error");
+        client.channels.cache.get(botCommands).send("Sorry! I ran into an problem");
+        isError = true;
+        skipCommand("", recentMessage);
+    } else {
+        return;
+    }
+});
 
 const getNextResource = (args, receivedMessage) => {
     return createAudioResource(ytdl(server_queue.songs[0].url, { filter: 'audioonly', volume: 2 }));
@@ -1049,9 +1079,10 @@ const skip_song = (arguments, receivedMessage) => {
         player.stop()
         queue.delete(receivedMessage.guild.id);
         server_queue = queue.get(receivedMessage.guild.id);
+        subscription.unsubscribe(player);
         setTimeout(() => { noSongsQueued() }, 1000);
     } else {
-        //player.stop()//Hello This is random guest 47688, this code is poo poo, console.kill(toby)
+        //player.stop()
         server_queue.songs.shift();
         video_player(receivedMessage.guild, server_queue.songs[0], receivedMessage);
     }
@@ -1063,6 +1094,7 @@ const stop_song = (arguments, receivedMessage) => {
     player.stop();
     queue.delete(receivedMessage.guild.id);
     server_queue = "";
+    subscription.unsubscribe(player);
     client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙥𝙡𝙖𝙮𝙗𝙖𝙘𝙠 𝙨𝙩𝙤𝙥𝙥𝙚𝙙 ${wApo}`
     );
 }
@@ -1084,7 +1116,7 @@ client.on("ready", async () => {
     msgStatus = "booting";
     storeId();
 });
-
+let joinSound = false;
 async function buttonJoin (interaction) {
     try{
         const voice_Channel = interaction.member ?.voice.channel;
@@ -1104,15 +1136,11 @@ async function buttonJoin (interaction) {
                     });
                 subscription3 = voiceConnection.subscribe(player);
                 player.play(resource);
-                player.on(AudioPlayerStatus.Playing, () => {
-                        // Do whatever you need to do when playing
-                });
-                player.on(AudioPlayerStatus.Idle, () => {
-                    subscription3.unsubscribe(audioPlayer);
-                    subscription = voiceConnection.subscribe(player);
-                });
-                
-
+                joinSound = true;
+                // player.on(AudioPlayerStatus.Idle, () => {
+                //     subscription3.unsubscribe(audioPlayer);
+                //     subscription = voiceConnection.subscribe(player);
+                // });
             }
         }
     } catch {console.log("Error joining voice channel");}
@@ -1302,14 +1330,13 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-
     // if nobody left the channel in question, return.
-    if (oldState.channelID !==  oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
+    if (oldState.channelID !== oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
       return;
     // otherwise, check how many people are in the channel now
     if (oldState.channel.members.size == 1) {
         try{
-            setTimeout(() => { // if 1 (you), wait five minutes
+            setTimeout(() => { // if 1 (you)
                 if (oldState.channel.members.size == 1){
                     mainMsgOnLeave(oldState);
                 }
