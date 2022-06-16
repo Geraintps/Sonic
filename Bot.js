@@ -1330,6 +1330,11 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
+    if (oldState.channel === null && newState.channel !== null && !isDisconnect) {
+        if (oldState.member.id == '192688164844994560') {
+            playCommand('Morecambe & Wise - Bring Me Sunshine', globalInteraction);
+        }
+    }
     // if nobody left the channel in question, return.
     if (oldState.channelID !== oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
       return;
@@ -1353,6 +1358,7 @@ async function mainMsgOnLeave(oldState) {
         btnComponent = [activityButtonStandby, standbyButton]
         await mainMsg.delete();
         mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+        storeId();
     } catch (e) {
         console.log(e);
     }
