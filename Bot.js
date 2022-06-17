@@ -1337,6 +1337,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
             playCommand('https://youtu.be/TMIYsoYwh0M', globalInteraction);
         } else if (oldState.member.id == '354380508257452042') {
             playCommand('https://youtu.be/e3xuisGGzVQ', globalInteraction);
+        } else if (oldState.member.id == '601883133981229072') {
+            playCommand('https://youtu.be/TnM1w3sp83Y', globalInteraction);
         }
     }
     // if nobody left the channel in question, return.
