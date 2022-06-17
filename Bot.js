@@ -1332,7 +1332,11 @@ client.on('interactionCreate', async (interaction) => {
 client.on('voiceStateUpdate', async (oldState, newState) => {
     if (oldState.channel === null && newState.channel !== null && !isDisconnect) {
         if (oldState.member.id == '192688164844994560') {
-            playCommand('Morecambe & Wise - Bring Me Sunshine', globalInteraction);
+            playCommand('https://youtu.be/bxiV02ou-z0', globalInteraction);
+        } else if (oldState.member.id == '130122865998561281') {
+            playCommand('https://youtu.be/TMIYsoYwh0M', globalInteraction);
+        } else if (oldState.member.id == '354380508257452042') {
+            playCommand('https://youtu.be/e3xuisGGzVQ', globalInteraction);
         }
     }
     // if nobody left the channel in question, return.
