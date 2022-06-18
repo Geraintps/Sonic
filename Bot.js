@@ -267,7 +267,7 @@ let currentGuild;
 let currentDuration;
 let isError = false;
 let isReply = false;
-let isDisconnect = false;
+let isDisconnect = true;
 let isConversation = false;
 let quotes = quotesObj;
 
@@ -1149,7 +1149,8 @@ async function buttonJoin (interaction) {
                 // });
             }
         }
-    } catch {console.log("Error joining voice channel");}
+        isDisconnect = false;
+    } catch (err) {console.log("Error joining voice channel : " + err);}
 }
 
 async function addquote(msg, user, quote) {
@@ -1336,6 +1337,7 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
+    let hasRole = oldState.member.roles.cache.some(r => r.name === "Summoner");
     if (oldState.channel === null && newState.channel !== null && !isDisconnect && !isPlaying) {
         queue.delete(guildID);
         server_queue = "";
@@ -1350,6 +1352,15 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         } else if (oldState.member.id == '322412820287193098') {
             playCommand('https://youtu.be/-WWm94Iqo6E', globalInteraction);
         }
+    } else if (oldState.channel === null && newState.channel !== null && isDisconnect && hasRole) {
+        oldState.guildId = oldState.guild.id;
+        msgStatus = "joined";
+        btnContent = joinedContent
+        btnComponent = [activityButtonJoined, joinedButton]
+        await mainMsg.delete();
+        mainMsg = await client.channels.cache.get(botCommands).send({ content: btnContent, components: btnComponent });
+        buttonJoin(oldState);
+        storeId();
     }
     // if nobody left the channel in question, return.
     if (oldState.channelID !== oldState.guild.me.voice.channelID || newState.channel || isDisconnect)
