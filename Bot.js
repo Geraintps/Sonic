@@ -1056,6 +1056,9 @@ player.on(AudioPlayerStatus.Playing, () => {
 player.on('error', error => {
     if (!isError) {
         console.error("Playback error");
+        queue.delete(receivedMessage.guild.id);
+        server_queue = "";
+        isPlaying = false;
         client.channels.cache.get(botCommands).send("Sorry! I ran into an problem");
         isError = true;
         skipCommand("", recentMessage);
