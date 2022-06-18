@@ -955,6 +955,7 @@ async function playCommand(arguments, receivedMessage) {
 async function pauseCommand(arguments, receivedMessage) {
     if (player.state.status == "playing") {
         player.pause();
+        isPlaying = false;
         client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙥𝙡𝙖𝙮𝙗𝙖𝙘𝙠 𝙥𝙖𝙪𝙨𝙚𝙙 ${wApo}\n${wApo} 𝘵𝘺𝘱𝘦 ;𝙧𝙚𝙨𝙪𝙢𝙚 𝘵𝘰 𝘤𝘰𝘯𝘵𝘪𝘯𝘶𝘦 𝘱𝘭𝘢𝘺𝘣𝘢𝘤𝘬 ${wApo}`);
     } else {
         client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙥𝙡𝙖𝙮𝙗𝙖𝙘𝙠 𝙞𝙨 𝙖𝙡𝙧𝙚𝙖𝙙𝙮 𝙥𝙖𝙪𝙨𝙚𝙙 ${wApo}`);
@@ -1096,6 +1097,7 @@ const stop_song = (arguments, receivedMessage) => {
     queue.delete(receivedMessage.guild.id);
     server_queue = "";
     subscription.unsubscribe(player);
+    isPlaying = false;
     client.channels.cache.get(botCommands).send(`‎\n${wApo} 𝙥𝙡𝙖𝙮𝙗𝙖𝙘𝙠 𝙨𝙩𝙤𝙥𝙥𝙚𝙙 ${wApo}`
     );
 }
