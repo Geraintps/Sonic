@@ -989,6 +989,7 @@ async function leaveCommand(arguments, receivedMessage) {
             server_queue = "";
             queue.delete(receivedMessage.guild.id)
             voiceConnection = await voiceConnection.destroy();
+            isDisconnect = true;
         } catch (e) {
             (console.error || console.log).call(console, e.stack || e);
         }
@@ -1330,7 +1331,9 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    if (oldState.channel === null && newState.channel !== null && !isDisconnect) {
+    if (oldState.channel === null && newState.channel !== null && !isDisconnect && !isPlaying) {
+        queue.delete(guildID);
+        server_queue = "";
         if (oldState.member.id == '192688164844994560') {
             playCommand('https://youtu.be/bxiV02ou-z0', globalInteraction);
         } else if (oldState.member.id == '130122865998561281') {
