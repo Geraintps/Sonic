@@ -1338,21 +1338,21 @@ client.on('interactionCreate', async (interaction) => {
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
     let hasRole = oldState.member.roles.cache.some(r => r.name === "Summoner");
-    if (oldState.channel === null && newState.channel !== null && !isDisconnect && !isPlaying) {
-        queue.delete(guildID);
-        server_queue = "";
-        if (oldState.member.id == '192688164844994560') {
-            playCommand('https://youtu.be/bxiV02ou-z0', globalInteraction);
-        } else if (oldState.member.id == '130122865998561281') {
-            playCommand('https://youtu.be/TMIYsoYwh0M', globalInteraction);
-        } else if (oldState.member.id == '354380508257452042') {
-            playCommand('https://youtu.be/e3xuisGGzVQ', globalInteraction);
-        } else if (oldState.member.id == '601883133981229072') {
-            playCommand('https://youtu.be/TnM1w3sp83Y', globalInteraction);
-        } else if (oldState.member.id == '322412820287193098') {
-            playCommand('https://youtu.be/-WWm94Iqo6E', globalInteraction);
-        }
-    } else if (oldState.channel === null && newState.channel !== null && isDisconnect && hasRole) {
+    // if (oldState.channel === null && newState.channel !== null && !isDisconnect && !isPlaying) {
+    //     queue.delete(guildID);
+    //     server_queue = "";
+    //     if (oldState.member.id == '192688164844994560') {
+    //         playCommand('https://youtu.be/bxiV02ou-z0', globalInteraction);
+    //     } else if (oldState.member.id == '130122865998561281') {
+    //         playCommand('https://youtu.be/TMIYsoYwh0M', globalInteraction);
+    //     } else if (oldState.member.id == '354380508257452042') {
+    //         playCommand('https://youtu.be/e3xuisGGzVQ', globalInteraction);
+    //     } else if (oldState.member.id == '601883133981229072') {
+    //         playCommand('https://youtu.be/TnM1w3sp83Y', globalInteraction);
+    //     } else if (oldState.member.id == '322412820287193098') {
+    //         playCommand('https://youtu.be/-WWm94Iqo6E', globalInteraction);
+    //     }
+    /* } else*/ if (oldState.channel === null && newState.channel !== null && isDisconnect && hasRole) {
         oldState.guildId = oldState.guild.id;
         msgStatus = "joined";
         btnContent = joinedContent
