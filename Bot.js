@@ -244,7 +244,7 @@ function newButtons() {
 }
 
 addSpeechEvent(client, {profanityFilter: false, lang: 'en-GB'});
-addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});
+/*addSpeechEvent(client, {profanityFilter: false, lang: 'sv'});*/
 
 let wApo = '`';
 let textChannel;
@@ -554,21 +554,21 @@ client.on("speech", async (msg) => {
         return;
     } else {
         let isSwedish = false;
-        let hasRole = msg.member.roles.cache.some(r => r.name === "Sweden");
-        if(hasRole && !msg.content.includes("Sonic")) {
-            await translate(msg.content, {to: 'en'}).then(res => {
-                if(res.from.language.iso == 'sv') {
-                    console.log(msg.content);
-                    console.log('Translation: ' + res.text);
-                    pastSpeech = res.text;
-                    isSwedish = true;
-                } else {
-                    isSwedish = false;
-                }
-            }).catch(err => {
-                console.error(err);
-            });
-        }
+        // let hasRole = msg.member.roles.cache.some(r => r.name === "Sweden");
+        // if(hasRole && !msg.content.includes("Sonic")) {
+        //     await translate(msg.content, {to: 'en'}).then(res => {
+        //         if(res.from.language.iso == 'sv') {
+        //             console.log(msg.content);
+        //             console.log('Translation: ' + res.text);
+        //             pastSpeech = res.text;
+        //             isSwedish = true;
+        //         } else {
+        //             isSwedish = false;
+        //         }
+        //     }).catch(err => {
+        //         console.error(err);
+        //     });
+        // }
         if (talkedRecently.has(msg.author.id) || isSwedish == true) {
             console.log();
         } else {
@@ -648,7 +648,7 @@ client.on("speech", async (msg) => {
                         tts(randomMsg, msg);
                     }
 
-                } else {return;}
+                } else { return; }
             } else {
                 if(msg.content.includes("end conversation")) {
                     isConversation = false;
@@ -659,15 +659,15 @@ client.on("speech", async (msg) => {
                 //console.log(newMsg)
             } 
         }
-        if (msg.author.id == client.user.id || isSwedish) {
-            return;
-        } else {
-            talkedRecently.add(msg.author.id);
-            setTimeout(() => {
-                // Removes the user from the set after a minute
-                talkedRecently.delete(msg.author.id);
-            }, 2000);
-        }
+        // if (msg.author.id == client.user.id || isSwedish) {
+        //     return;
+        // } else {
+        //     talkedRecently.add(msg.author.id);
+        //     setTimeout(() => {
+        //         // Removes the user from the set after a minute
+        //         talkedRecently.delete(msg.author.id);
+        //     }, 2000);
+        // }
     }
 });
 
