@@ -1267,6 +1267,9 @@ function updateQuotes() {
 
 client.on('interactionCreate', async (interaction) => {
     try{
+        if(interaction.author.id == "441684568760778753" || interaction.author.id == "130122865998561281") {
+            return;
+        }
 	    if (interaction.isButton()) {
             globalInteraction = interaction;
             if (interaction.customId === 'join') {
