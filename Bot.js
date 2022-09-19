@@ -335,7 +335,7 @@ async function checkMsg(msg, isVoiceMsg) {
 
 client.on("messageCreate", async (msg) => {
     try{
-        if(msg.author.id == 441684568760778753 || msg.author.id == 130122865998561281) {
+        if(msg.author.id == "441684568760778753" || msg.author.id == "130122865998561281") {
             msg.delete();
             return;
         }
