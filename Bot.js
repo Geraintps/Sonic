@@ -335,10 +335,10 @@ async function checkMsg(msg, isVoiceMsg) {
 
 client.on("messageCreate", async (msg) => {
     try{
-        if(msg.author.id == "441684568760778753" || msg.author.id == "130122865998561281") {
-            msg.delete();
-            return;
-        }
+        // if(msg.author.id == "441684568760778753" || msg.author.id == "130122865998561281") {
+        //     msg.delete();
+        //     return;
+        // }
         if(msg.type != "APPLICATION_COMMAND"){
             isReply = false;
         }
@@ -1267,9 +1267,9 @@ function updateQuotes() {
 
 client.on('interactionCreate', async (interaction) => {
     try{
-        if(interaction.author.id == "441684568760778753" || interaction.author.id == "130122865998561281") {
-            return;
-        }
+        // if(interaction.author.id == "441684568760778753" || interaction.author.id == "130122865998561281") {
+        //     return;
+        // }
 	    if (interaction.isButton()) {
             globalInteraction = interaction;
             if (interaction.customId === 'join') {
