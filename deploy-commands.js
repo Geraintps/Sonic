@@ -5,6 +5,8 @@ const token = require('./clientSecret.json');
 const { clientId, guildId } = require('./clientId.json');
 
 const commands = [
+	new SlashCommandBuilder().setName('nasa').setDescription("Random Nasa Image"),
+	new SlashCommandBuilder().setName('imageoftheday').setDescription("Nasa's Image of the Day"),
 	new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
 	new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
 	new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),

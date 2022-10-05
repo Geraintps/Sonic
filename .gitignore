@@ -3,4 +3,5 @@ clientSecret.json
 /node_modules
 clientId.json
 openai.json
+nasa.json
 gitignore

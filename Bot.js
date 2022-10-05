@@ -20,6 +20,11 @@ const talkedRecently = new Set();
 //const openai = new OpenAI(OPENAI_API_KEY);
 const quotesObj = require('./quotes.json');
 const translate = require('@vitalets/google-translate-api');
+const NASA_API_KEY = require('./nasa.json');
+var apod = require("apod");
+const schedule = require('node-schedule');
+
+apod.apiKey = NASA_API_KEY;
 
 const client = new Client({
     intents: [
@@ -254,6 +259,7 @@ let user;
 let mainMsg;
 let msgStatus = 'booting';
 let botCommands = "759506191705178152";
+let jwst = "1012814861132103810"
 let server_queue;
 let globalInteraction;
 let btnComponent;
@@ -392,23 +398,23 @@ client.on("messageCreate", async (msg) => {
             } else if (msg.content.includes(";time")) {  
                 //let args = msg.content.replace(/;play /g,'');
                 getTime(msg);
-            } else if (msg.content.includes("Sonic tell me about lemons")) {
-                await pauseCommand();
-                let theMsg = await wikipedia(msg);
-                await tts(theMsg, msg);
-            }
+            } // else if (msg.content.includes("Sonic tell me about lemons")) {
+            //     await pauseCommand();
+            //     let theMsg = await wikipedia(msg);
+            //     await tts(theMsg, msg);
+            // }
             // the user can type the command ... your command code goes here :)
-                    // Adds the user to the set so that they can't talk for a minute
+                    // Adds the user to the set so that they can't talk for 5 secs
             if (msg.author.id == client.user.id) {
                 return;
             } else {
-            talkedRecently.add(msg.author.id);
-            setTimeout(() => {
-                // Removes the user from the set after a minute
-                talkedRecently.delete(msg.author.id);
-            }, 5000);
-                }
+                talkedRecently.add(msg.author.id);
+                setTimeout(() => {
+                    // Removes the user from the set after 5 secs
+                    talkedRecently.delete(msg.author.id);
+                }, 5000);
             }
+        }
     } catch {console.log("ERROR: Talked recently");}
 });
 
@@ -1109,7 +1115,7 @@ const stop_song = (arguments, receivedMessage) => {
     );
 }
 
-client.on("ready", async () => {
+client.on('ready', async () => {
     console.log("Ready!");
     client.user.setPresence({ activities: [{ type: 'STREAMING', name: 'the AI Takeover', url: 'https://www.twitch.tv/voidedrl' }], status: 'dnd' });
     try {
@@ -1265,6 +1271,7 @@ function updateQuotes() {
     }catch(e) {console.log(e)}
 }
 
+let nasaInteration;
 client.on('interactionCreate', async (interaction) => {
     try{
         // if(interaction.author.id == "441684568760778753" || interaction.author.id == "130122865998561281") {
@@ -1338,6 +1345,12 @@ client.on('interactionCreate', async (interaction) => {
             } else if (commandName === 'quote') {
                 let user = interaction.options.getString('user');
                 sendquote(interaction, user);
+            } else if (commandName === 'imageoftheday') {
+                nasaInteration = interaction;
+                apod(callback);
+            } else if (commandName === 'nasa') {
+                nasaInteration = interaction;
+                apod.random(callback)
             }
         } else {return;}
     } catch (e) {console.log(e);}
@@ -1398,5 +1411,29 @@ async function mainMsgOnLeave(oldState) {
     }
     leaveCommand("", oldState);
 }
+
+async function callback(err, data) {
+    try{
+        if(nasaInteration == "" || !nasaInteration) {
+            if(!err) {
+                await client.channels.cache.get(jwst).send('**' + data.title + '**\n' + '*' + data.explanation + '*\n- ' + data.date + '\n' + data.url);
+            } else {
+                console.log(err);
+            }
+        } else if(!err) {
+            await nasaInteration.reply('**' + data.title + '**\n' + '*' + data.explanation + '*\n- ' + data.date + '\n' + data.url);
+            nasaInteration = "";
+        } else {
+            await nasaInteration.reply("Houston, we have a problem...");
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+schedule.scheduleJob('* 9 * * *', async function(){
+    apod(callback);
+});
 
 client.login(secret);
