@@ -1433,7 +1433,7 @@ async function callback(err, data) {
 }
 
 const rule = new schedule.RecurrenceRule();
-rule.hour = 12;
+rule.hour = 9;
 rule.minute = 0;
 schedule.scheduleJob(rule, async function(){
     apod(callback);
