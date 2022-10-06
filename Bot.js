@@ -1432,7 +1432,10 @@ async function callback(err, data) {
     }
 }
 
-schedule.scheduleJob('* 9 * * *', async function(){
+const rule = new schedule.RecurrenceRule();
+rule.hour = 12;
+rule.minute = 0;
+schedule.scheduleJob(rule, async function(){
     apod(callback);
 });
 
